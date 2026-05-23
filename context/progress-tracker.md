@@ -21,13 +21,19 @@ project is and how it got there.
   scope confirmed: 3 categories, Lagos only).
 - Stack decisions finalized (see `architecture.md`).
 - UI direction confirmed: light + dark with toggle,
-  Fraunces + Plus Jakarta Sans, terracotta/amber
-  primary.
+  Fraunces + Plus Jakarta Sans, terracotta/amber primary.
 - Context documentation drafted (this folder).
-- **Phase 0 Unit 1: Next.js project scaffold.** Created
-  with TypeScript, Tailwind, ESLint, App Router, src/
-  directory, Turbopack. `npm run dev` and `npm run build`
-  both pass. Git initialized and pushed to GitHub.
+- **Phase 0 Unit 1: Next.js project scaffold.** TypeScript,
+  Tailwind v4, ESLint, App Router, Turbopack, src/
+  directory. AGENTS.md and CLAUDE.md configured. Git
+  initialized and pushed.
+- **Phase 0 Unit 2: Theme system & dark/light toggle.**
+  Tailwind v4 CSS-first tokens in `globals.css`, semantic
+  color system (terracotta light / amber dark), Fraunces +
+  Plus Jakarta Sans loaded via next/font/google, next-themes
+  provider with system default and class-based toggle.
+  Test page proves all tokens, both fonts, and theme
+  switching work end to end. `npm run build` passes.
 
 ## In Progress
 
@@ -37,29 +43,23 @@ project is and how it got there.
 
 The next implementation units, in order:
 
-1. **Tailwind theme setup**: Configure design tokens
-   from `ui-context.md` in `globals.css` and
-   `tailwind.config.ts`. Set up `next-themes` provider.
-   Verify dark/light toggle works.
-2. **Typography**: Install Fraunces and Plus Jakarta
-   Sans via `next/font/google`. Verify both render.
-3. **shadcn/ui init**: Run shadcn init, install MVP
+1. **shadcn/ui init**: Run shadcn init, install MVP
    components listed in `ui-context.md`. Verify a
    sample button renders in both modes.
-4. **Prisma + Database**: Set up Prisma with Neon
+2. **Prisma + Database**: Set up Prisma with Neon
    PostgreSQL. Run initial migration with the schema
    from `database-schema.md`. Verify Prisma Studio
    connects.
-5. **Clerk auth**: Install Clerk, set up middleware,
+3. **Clerk auth**: Install Clerk, set up middleware,
    create sign-in/sign-up pages. Verify a user can
    sign up and `userId` flows to the server.
-6. **Role selection flow**: After sign-up, prompt for
+4. **Role selection flow**: After sign-up, prompt for
    role (customer or vendor). Write to Clerk metadata
    and create a `User` row.
-7. **Route groups and layouts**: Create `(public)`,
+5. **Route groups and layouts**: Create `(public)`,
    `(customer)`, `(vendor)`, `(admin)` groups with
    role-gated middleware.
-8. **Landing page**: Build the home page with hero,
+6. **Landing page**: Build the home page with hero,
    featured categories, and trust signals.
 
 ## Open Questions
