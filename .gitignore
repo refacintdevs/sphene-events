@@ -39,3 +39,27 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local env files
+.env
+.env*.local
+.env.production
+
+# Cloudinary local cache
+.cloudinary/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# Prisma (generated client only — keep schema and migrations)
+src/generated/
+
+# Logs
+*.log
