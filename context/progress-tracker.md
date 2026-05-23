@@ -24,41 +24,42 @@ project is and how it got there.
   Fraunces + Plus Jakarta Sans, terracotta/amber
   primary.
 - Context documentation drafted (this folder).
+- **Phase 0 Unit 1: Next.js project scaffold.** Created
+  with TypeScript, Tailwind, ESLint, App Router, src/
+  directory, Turbopack. `npm run dev` and `npm run build`
+  both pass. Git initialized and pushed to GitHub.
 
 ## In Progress
 
-- None yet. Awaiting kickoff of Phase 0 implementation.
+- None. Phase 0 Unit 1 complete.
 
 ## Next Up
 
 The next implementation units, in order:
 
-1. **Project scaffold**: `create-next-app` with
-   TypeScript, Tailwind, ESLint, App Router. Verify
-   `npm run build` and `npm run dev` work.
-2. **Tailwind theme setup**: Configure design tokens
+1. **Tailwind theme setup**: Configure design tokens
    from `ui-context.md` in `globals.css` and
    `tailwind.config.ts`. Set up `next-themes` provider.
    Verify dark/light toggle works.
-3. **Typography**: Install Fraunces and Plus Jakarta
+2. **Typography**: Install Fraunces and Plus Jakarta
    Sans via `next/font/google`. Verify both render.
-4. **shadcn/ui init**: Run shadcn init, install MVP
+3. **shadcn/ui init**: Run shadcn init, install MVP
    components listed in `ui-context.md`. Verify a
    sample button renders in both modes.
-5. **Prisma + Database**: Set up Prisma with Neon
+4. **Prisma + Database**: Set up Prisma with Neon
    PostgreSQL. Run initial migration with the schema
    from `database-schema.md`. Verify Prisma Studio
    connects.
-6. **Clerk auth**: Install Clerk, set up middleware,
+5. **Clerk auth**: Install Clerk, set up middleware,
    create sign-in/sign-up pages. Verify a user can
    sign up and `userId` flows to the server.
-7. **Role selection flow**: After sign-up, prompt for
+6. **Role selection flow**: After sign-up, prompt for
    role (customer or vendor). Write to Clerk metadata
    and create a `User` row.
-8. **Route groups and layouts**: Create `(public)`,
+7. **Route groups and layouts**: Create `(public)`,
    `(customer)`, `(vendor)`, `(admin)` groups with
    role-gated middleware.
-9. **Landing page**: Build the home page with hero,
+8. **Landing page**: Build the home page with hero,
    featured categories, and trust signals.
 
 ## Open Questions
