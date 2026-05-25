@@ -34,19 +34,25 @@ project is and how it got there.
   provider with system default and class-based toggle.
   Test page proves all tokens, both fonts, and theme
   switching work end to end. `npm run build` passes.
+- **Phase 0 Unit 3: shadcn/ui initialization + MVP components.**
+  `components.json` (Tailwind v4, CSS-first, no config file),
+  `src/lib/utils.ts` with `cn()`, shadcn CLI 4.8.0, all 23 MVP
+  components installed in `src/components/ui/`. `globals.css`
+  untouched. `lucide-react` installed; theme-toggle SVG icons
+  replaced with `Sun`/`Moon` from lucide. Test page updated
+  with Button, Card+Badge, Dialog, and Skeleton demo section.
+  One generated bug fixed: `calendar.tsx` `table` → `month_grid`
+  (react-day-picker v10 API rename). `npm run build` passes.
 
 ## In Progress
 
-- None. Phase 0 Unit 1 complete.
+- None. Phase 0 Unit 3 complete.
 
 ## Next Up
 
 The next implementation units, in order:
 
-1. **shadcn/ui init**: Run shadcn init, install MVP
-   components listed in `ui-context.md`. Verify a
-   sample button renders in both modes.
-2. **Prisma + Database**: Set up Prisma with Neon
+1. **Prisma + Database**: Set up Prisma with Neon
    PostgreSQL. Run initial migration with the schema
    from `database-schema.md`. Verify Prisma Studio
    connects.

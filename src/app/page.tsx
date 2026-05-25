@@ -1,4 +1,16 @@
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function HomePage() {
   return (
@@ -70,9 +82,70 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* shadcn/ui components check */}
+        <section className="mt-20 md:mt-24">
+          <h2 className="font-display text-2xl font-semibold">
+            shadcn/ui components
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Button, Card, Badge, Dialog, and Skeleton — all using semantic
+            tokens.
+          </p>
+
+          {/* Buttons */}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button>Primary button</Button>
+            <Button variant="outline">Outline button</Button>
+          </div>
+
+          {/* Card with Badge */}
+          <div className="mt-6">
+            <Card className="max-w-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Sunshine Catering</CardTitle>
+                  <Badge>Verified</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Full-service catering for weddings, corporate events, and
+                  private celebrations across Lagos.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Dialog */}
+          <div className="mt-6">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">Open dialog</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Booking confirmation</DialogTitle>
+                  <DialogDescription>
+                    Your deposit will be held in escrow until after the event.
+                    You can cancel up to 48 hours before the event date for a
+                    full refund.
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Skeleton */}
+          <div className="mt-6 max-w-sm space-y-3">
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </section>
+
         {/* Footer note */}
         <footer className="mt-20 border-t border-border pt-8 text-sm text-muted-foreground md:mt-32">
-          Phase 0 · Unit 2 — Theme system verified.
+          Phase 0 · Unit 3 — shadcn/ui components verified.
         </footer>
       </div>
     </main>
