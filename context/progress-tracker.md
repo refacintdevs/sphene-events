@@ -121,3 +121,6 @@ The next implementation units, in order:
   MVP. Resist requests to add them prematurely —
   document them in `project-overview.md` under
   Phase 2 instead.
+- Phase 0 Units 1-4 complete in single session (May 25, 2026).
+     Ready to start Unit 5 (Clerk auth) fresh.
+     Prerequisite: Create Clerk account at clerk.com before next session.
