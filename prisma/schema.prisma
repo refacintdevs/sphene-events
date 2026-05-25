@@ -1,0 +1,337 @@
+// ============================================================
+// Sphene Events — Prisma Schema
+// Source of truth: context/database-schema.md
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum UserRole {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNSUBMITTED // Vendor has not submitted yet
+  PENDING // Submitted, awaiting admin review
+  APPROVED // Admin verified
+  REJECTED // Admin rejected, vendor can resubmit
+  INFO_REQUESTED // Admin needs more documents
+}
+
+enum VendorCategory {
+  CATERING
+  DECORATION
+  PHOTOGRAPHY
+  // Phase 2: MUA, DJ, MC, VENUE, BAND, VIDEOGRAPHY
+}
+
+enum NigerianState {
+  LAGOS
+  // Phase 2: ABUJA, RIVERS, OYO, KANO, KADUNA, ENUGU, etc.
+}
+
+enum BookingStatus {
+  PENDING_VENDOR // Awaiting vendor accept/decline
+  ACCEPTED // Vendor accepted, awaiting payment
+  PAID // Deposit paid, in escrow
+  COMPLETED // Event happened, customer confirmed
+  DECLINED // Vendor declined
+  CANCELLED // Customer cancelled before vendor accepted
+  DISPUTED // Active dispute
+  REFUNDED // Refund issued to customer
+  EXPIRED // Vendor did not respond in time
+}
+
+enum PaymentStatus {
+  INITIALIZED // Paystack transaction created
+  SUCCESSFUL // Payment confirmed via webhook
+  HELD // Funds in escrow
+  RELEASED // Funds released to vendor
+  REFUNDED // Funds returned to customer
+  FAILED // Payment failed
+}
+
+enum DocumentType {
+  CAC_CERTIFICATE
+  GOVERNMENT_ID
+  PROOF_OF_ADDRESS
+  PORTFOLIO_SAMPLE
+  REFERENCE_LETTER
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_FOR_CUSTOMER
+  RESOLVED_FOR_VENDOR
+  CLOSED_NO_ACTION
+}
+
+enum AuditAction {
+  VENDOR_VERIFIED
+  VENDOR_REJECTED
+  BOOKING_PAID
+  PAYMENT_RELEASED
+  PAYMENT_REFUNDED
+  DISPUTE_OPENED
+  DISPUTE_RESOLVED
+  USER_SUSPENDED
+  USER_RESTORED
+}
+
+// ============================================================
+// Models
+// ============================================================
+
+// User — one row per Clerk user. clerkId joins to Clerk identity.
+model User {
+  id              String    @id @default(cuid())
+  clerkId         String    @unique
+  email           String    @unique
+  fullName        String
+  phoneNumber     String? // Nigerian format: +234XXXXXXXXXX
+  avatarUrl       String?
+  role            UserRole  @default(CUSTOMER)
+  isSuspended     Boolean   @default(false)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  vendorProfile    VendorProfile?
+  customerBookings Booking[]      @relation("CustomerBookings")
+  reviewsGiven     Review[]       @relation("ReviewsGiven")
+  disputesOpened   Dispute[]      @relation("DisputeOpenedBy")
+  auditLogsAsActor AuditLog[]     @relation("AuditActor")
+
+  @@index([clerkId])
+  @@index([role])
+}
+
+// VendorProfile — one-to-one with User for role=VENDOR. Holds business data.
+model VendorProfile {
+  id                     String             @id @default(cuid())
+  userId                 String             @unique
+  businessName           String
+  slug                   String             @unique // URL-safe identifier
+  bio                    String             @db.Text
+  cacNumber              String? // RC1234567 format
+  whatsappNumber         String // +234XXXXXXXXXX
+  instagramHandle        String?
+  city                   String             @default("Lagos")
+  state                  NigerianState      @default(LAGOS)
+  address                String
+  yearsOfExperience      Int                @default(0)
+  verificationStatus     VerificationStatus @default(UNSUBMITTED)
+  verifiedAt             DateTime?
+  verificationNotes      String?            @db.Text // Admin notes on review
+  paystackSubaccountCode String? // For Phase 2 auto-payouts
+  bankName               String?
+  bankAccountNumber      String?
+  bankAccountName        String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services        Service[]
+  portfolioItems  PortfolioItem[]
+  documents       VerificationDocument[]
+  bookings        Booking[]              @relation("VendorBookings")
+  reviewsReceived Review[]               @relation("ReviewsReceived")
+
+  @@index([verificationStatus])
+  @@index([city, state])
+  @@index([slug])
+}
+
+// Service — a bookable package offered by a vendor.
+model Service {
+  id            String         @id @default(cuid())
+  vendorId      String
+  category      VendorCategory
+  title         String // "Premium Wedding Catering Package"
+  description   String         @db.Text
+  priceKobo     Int // Base price in kobo
+  durationHours Int? // Estimated service duration
+  servesUpTo    Int? // For caterers: serves up to X people
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  vendor   VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([vendorId])
+  @@index([category, isActive])
+}
+
+// PortfolioItem — a single image in a vendor's portfolio. Binary lives in Cloudinary.
+model PortfolioItem {
+  id                 String          @id @default(cuid())
+  vendorId           String
+  cloudinaryPublicId String
+  imageUrl           String
+  caption            String?
+  category           VendorCategory?
+  displayOrder       Int             @default(0)
+  createdAt          DateTime        @default(now())
+
+  vendor VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId, displayOrder])
+}
+
+// VerificationDocument — docs submitted by vendors for admin verification.
+model VerificationDocument {
+  id                 String       @id @default(cuid())
+  vendorId           String
+  type               DocumentType
+  cloudinaryPublicId String
+  fileUrl            String
+  fileName           String
+  uploadedAt         DateTime     @default(now())
+
+  vendor VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId, type])
+}
+
+// Booking — connects a customer to a vendor for a specific service on a date.
+model Booking {
+  id                 String        @id @default(cuid())
+  bookingCode        String        @unique // Human-readable: SE-2026-0001
+  customerId         String
+  vendorId           String
+  serviceId          String
+  eventDate          DateTime // Day of the event
+  eventLocation      String // Free text address
+  guestCount         Int?
+  specialRequests    String?       @db.Text
+  totalAmountKobo    Int // Snapshot of Service.priceKobo at booking time
+  depositAmountKobo  Int // What the customer pays now (typically 30-50%)
+  balanceAmountKobo  Int // Remaining, paid offline or on completion
+  status             BookingStatus @default(PENDING_VENDOR)
+  vendorRespondedAt  DateTime?
+  paidAt             DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  whatsappRevealed   Boolean       @default(false) // True once deposit paid
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  customer User          @relation("CustomerBookings", fields: [customerId], references: [id])
+  vendor   VendorProfile @relation("VendorBookings", fields: [vendorId], references: [id])
+  service  Service       @relation(fields: [serviceId], references: [id])
+  payment  Payment?
+  review   Review?
+  dispute  Dispute?
+
+  @@index([customerId, status])
+  @@index([vendorId, status])
+  @@index([eventDate])
+  @@index([status])
+}
+
+// Payment — one-to-one with Booking. Tracks Paystack transaction state and escrow.
+model Payment {
+  id                 String        @id @default(cuid())
+  bookingId          String        @unique
+  paystackReference  String        @unique
+  paystackAccessCode String?
+  amountKobo         Int
+  status             PaymentStatus @default(INITIALIZED)
+  initializedAt      DateTime      @default(now())
+  paidAt             DateTime?
+  releasedAt         DateTime?
+  releasedByUserId   String? // Admin who released
+  refundedAt         DateTime?
+  refundReason       String?
+  paystackMetadata   Json? // Raw webhook payload for audit
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([paystackReference])
+}
+
+// Review — customer review of a vendor, tied to a completed booking.
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  customerId String
+  vendorId   String
+  rating     Int // 1-5
+  title      String?
+  body       String   @db.Text
+  isPublic   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  booking  Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customer User          @relation("ReviewsGiven", fields: [customerId], references: [id])
+  vendor   VendorProfile @relation("ReviewsReceived", fields: [vendorId], references: [id])
+
+  @@index([vendorId, isPublic])
+  @@index([rating])
+}
+
+// Dispute — a dispute on a paid booking. Admin resolves.
+model Dispute {
+  id               String        @id @default(cuid())
+  bookingId        String        @unique
+  openedByUserId   String
+  reason           String        @db.Text
+  evidenceUrls     String[]
+  status           DisputeStatus @default(OPEN)
+  resolution       String?       @db.Text
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  openedBy User    @relation("DisputeOpenedBy", fields: [openedByUserId], references: [id])
+
+  @@index([status])
+}
+
+// AuditLog — append-only log of high-stakes platform actions.
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      AuditAction
+  actorUserId String? // Null for system actions
+  subjectType String // "VendorProfile", "Booking", "Payment", etc.
+  subjectId   String
+  details     Json?
+  createdAt   DateTime    @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id])
+
+  @@index([actorUserId])
+  @@index([subjectType, subjectId])
+  @@index([createdAt])
+}
+
+// WebhookEvent — deduplication record for incoming webhooks (Paystack, Clerk).
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  source      String // "paystack" | "clerk"
+  eventId     String // Provider's event ID
+  eventType   String
+  payload     Json
+  processedAt DateTime @default(now())
+
+  @@unique([source, eventId])
+  @@index([source, eventType])
+}
