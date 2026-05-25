@@ -251,7 +251,7 @@ platform.
 ```prisma
 model Booking {
   id                String         @id @default(cuid())
-  bookingCode       String         @unique  // Human-readable: NV-2026-0001
+  bookingCode       String         @unique  // Human-readable: SE-2026-0001
   customerId        String
   vendorId          String
   serviceId         String

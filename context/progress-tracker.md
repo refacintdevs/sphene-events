@@ -43,29 +43,38 @@ project is and how it got there.
   with Button, Card+Badge, Dialog, and Skeleton demo section.
   One generated bug fixed: `calendar.tsx` `table` → `month_grid`
   (react-day-picker v10 API rename). `npm run build` passes.
+- **Phase 0 Unit 4: Prisma + Neon PostgreSQL database setup.**
+  Prisma 7.8.0 + `@prisma/adapter-neon` + `@neondatabase/serverless`
+  installed. `prisma/schema.prisma` — full schema (9 enums, 11 models)
+  matching `database-schema.md`. `prisma.config.ts` — Prisma 7 config
+  file with `DIRECT_URL` for migrations, `migrations.seed` for seed
+  command. `src/lib/db.ts` — `PrismaNeon` singleton with pooled
+  `DATABASE_URL` for runtime queries. Initial migration
+  `20260525154803_init` applied to Neon (Frankfurt). Schema validated.
+  Seed script (`prisma/seed.ts`) populates 5 users, 2 vendor profiles,
+  4 services, 1 booking (SE-2026-0001). `npm run build` passes.
+  `prisma migrate status` confirms 1 migration applied, database in sync.
+  **Note:** To inspect data use `prisma studio`:
+  `npx dotenv -e .env.local -- npx prisma studio`
 
 ## In Progress
 
-- None. Phase 0 Unit 3 complete.
+- None. Phase 0 Unit 4 complete.
 
 ## Next Up
 
 The next implementation units, in order:
 
-1. **Prisma + Database**: Set up Prisma with Neon
-   PostgreSQL. Run initial migration with the schema
-   from `database-schema.md`. Verify Prisma Studio
-   connects.
-3. **Clerk auth**: Install Clerk, set up middleware,
+1. **Clerk auth**: Install Clerk, set up middleware,
    create sign-in/sign-up pages. Verify a user can
    sign up and `userId` flows to the server.
-4. **Role selection flow**: After sign-up, prompt for
+2. **Role selection flow**: After sign-up, prompt for
    role (customer or vendor). Write to Clerk metadata
    and create a `User` row.
-5. **Route groups and layouts**: Create `(public)`,
+3. **Route groups and layouts**: Create `(public)`,
    `(customer)`, `(vendor)`, `(admin)` groups with
    role-gated middleware.
-6. **Landing page**: Build the home page with hero,
+4. **Landing page**: Build the home page with hero,
    featured categories, and trust signals.
 
 ## Open Questions
@@ -96,6 +105,8 @@ The next implementation units, in order:
 | Phase 0  | 3 categories + Lagos only at launch             | Focuses liquidity in one city/segment; easier to seed supply.                      |
 | Phase 0  | Light + dark mode from day one                  | Easier to bake in than retrofit; user preference signal.                           |
 | Phase 0  | Fraunces + Plus Jakarta Sans                    | Distinctive typography that avoids generic SaaS look (no Inter).                   |
+| 2026-05-25 | **AD-001: Prisma 7 + @prisma/adapter-neon** — `PrismaNeon` (WebSocket transport via `@neondatabase/serverless`) chosen over `PrismaNeonHttp` because it supports transactions, which we require for atomic booking + payment writes. `PrismaNeonHttp` would avoid persistent connections entirely but does not support multi-statement transactions. WebSocket still has cold-start cost, but is the correct trade-off for our financial integrity requirements. Runtime queries use `DATABASE_URL` (pooled via PgBouncer). Migrations use `DIRECT_URL` (direct TCP) via `prisma.config.ts`. | Prisma 7 removed implicit URL config from `schema.prisma`; adopting now avoids a future major-version migration. Neon is our committed provider. |
+| 2026-05-25 | **AD-002: Single `.env.local` source of truth** — All environment variables live in `.env.local`. Prisma CLI does not read `.env.local` by default. Rather than creating a duplicate `.env` file, we load vars via `dotenv-cli` (`npx dotenv -e .env.local --`) or inline PowerShell env injection before any `npx prisma` command. `--env-file .env.local` is NOT sufficient in Prisma 7 because `prisma.config.ts` is evaluated before CLI flags are processed. | Avoids env drift between `.env` and `.env.local`; keeps one canonical file. |
 
 ## Session Notes
 

@@ -4,10 +4,11 @@
 
 | Layer        | Technology                  | Role                                                |
 | ------------ | --------------------------- | --------------------------------------------------- |
-| Framework    | Next.js 15 (App Router) + TypeScript | Server-rendered React with file-based routing  |
-| UI           | Tailwind CSS + shadcn/ui    | Utility-first styling with composable primitives    |
+| Framework    | Next.js 16 (App Router) + TypeScript | Server-rendered React with file-based routing  |
+| UI           | Tailwind CSS v4 + shadcn/ui | Utility-first styling with composable primitives    |
 | Auth         | Clerk                       | User identity, sessions, role metadata, middleware  |
-| Database     | Prisma + PostgreSQL (Neon)  | Relational store for all platform data              |
+| Database     | Prisma 7.8.0 + PostgreSQL (Neon) | Relational store for all platform data. Requires `@prisma/adapter-neon`. |
+| DB Driver    | `@prisma/adapter-neon` + `@neondatabase/serverless` | WebSocket transport (PrismaNeon); supports transactions. Node.js ≥ 22 required for native WebSocket. |
 | File Storage | Cloudinary                  | Portfolio images, vendor documents                  |
 | Payments     | Paystack                    | Deposits, escrow holds, vendor payouts              |
 | Email        | Resend                      | Transactional notifications                         |
@@ -48,7 +49,10 @@
   profiles, services, bookings, payments, reviews,
   verification records, dispute records, audit logs.
   References to external file URLs (Cloudinary IDs)
-  live here.
+  live here. Connection URL routing: `DATABASE_URL`
+  (pooled via PgBouncer) is used at runtime by `lib/db.ts`.
+  `DIRECT_URL` (direct TCP) is used for migrations and
+  `prisma studio` via `prisma.config.ts`.
 - **Cloudinary**: All binary content — vendor portfolio
   images, verification documents (CAC certificates,
   ID photos), profile avatars. The database stores
