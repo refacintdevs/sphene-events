@@ -40,10 +40,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Local env files
+# env files — ignore real env files, allow example/template files
 .env
-.env*.local
+.env.local
+.env.*.local
+.env.development
 .env.production
+.env.test
+# Allow template files (explicitly un-ignore)
+!.env.example
+!.env.template
 
 # Cloudinary local cache
 .cloudinary/
