@@ -74,8 +74,8 @@ The next implementation units, in order:
 - Admin role assignment: which Clerk user(s) get admin
   on day one? Need at least one before vendor
   verification flow can be tested.
-- Domain name and brand: "NaijaVendors" is a working
-  name. Confirm or finalize before public launch
+- Domain name and brand: "Sphene Events" is the confirmed
+  name. Finalize domain before public launch
   preparation.
 
 ## Architecture Decisions

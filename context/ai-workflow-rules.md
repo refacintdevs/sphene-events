@@ -2,7 +2,7 @@
 
 ## Approach
 
-Build NaijaVendors incrementally using a spec-driven
+Build Sphene Events incrementally using a spec-driven
 workflow. The files in this `context/` folder define
 what to build (`project-overview.md`, `feature-specs.md`),
 how to build it (`architecture.md`, `code-standards.md`,

@@ -2,7 +2,7 @@
 
 ## Theme
 
-NaijaVendors supports both light and dark modes via
+Sphene Events supports both light and dark modes via
 `next-themes`. The user can toggle modes and the choice
 persists. System preference is respected on first visit.
 

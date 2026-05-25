@@ -1,14 +1,14 @@
-# NaijaVendors — Event Vendor Booking & Marketplace
+# Sphene Events — Event Vendor Booking & Marketplace
 
 ## Overview
 
-NaijaVendors is a web platform that connects Nigerian event
+Sphene Events is a web platform that connects Nigerian event
 planners and individuals with verified event vendors —
 caterers, decorators, photographers, makeup artists, DJs,
 MCs, and venues. The platform solves the trust gap in
 Nigeria's informal vendor economy: buyers cannot easily
 verify vendor legitimacy, compare pricing transparently, or
-recover from no-shows. NaijaVendors addresses this through
+recover from no-shows. Sphene Events addresses this through
 admin-verified vendor profiles, escrow-backed payments,
 on-platform reviews tied to real bookings, and clear
 dispute resolution.

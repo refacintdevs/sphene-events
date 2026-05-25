@@ -63,3 +63,10 @@ src/generated/
 
 # Logs
 *.log
+
+# Claude Code local state
+.claude/
+
+# IDE local state
+.history/
+*.code-workspace

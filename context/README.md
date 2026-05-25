@@ -1,6 +1,6 @@
-# Context Files — NaijaVendors
+# Context Files — Sphene Events
 
-This folder is the source of truth for the NaijaVendors
+This folder is the source of truth for the Sphene Events
 project. Every implementation decision references one
 of these files. When in doubt, the docs win.
 
@@ -74,7 +74,7 @@ this order:
 
 ## Project Name
 
-Working name: **NaijaVendors**. May change before
+Working name: **Sphene Events**. May change before
 launch. If renamed, update:
 
 - `project-overview.md` (title and references)
@@ -82,3 +82,4 @@ launch. If renamed, update:
 - `package.json`
 - `README.md` (root, not this file)
 - Any user-facing copy
+
