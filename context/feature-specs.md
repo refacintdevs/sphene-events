@@ -33,8 +33,8 @@ spec — not against intuition.
 - Admin role is never selectable in the UI. It is
   set manually via Clerk dashboard.
 - If a user signs in but no `User` row exists in our
-  DB (data drift), the middleware redirects to
-  `/onboarding/role` to recreate the row.
+  DB (data drift), the proxy (`proxy.ts`) triggers
+  lazy sync via `getCurrentUser()` to recreate the row.
 
 ## 2. Vendor Onboarding and Verification
 

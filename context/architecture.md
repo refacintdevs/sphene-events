@@ -6,7 +6,7 @@
 | ------------ | --------------------------- | --------------------------------------------------- |
 | Framework    | Next.js 16 (App Router) + TypeScript | Server-rendered React with file-based routing  |
 | UI           | Tailwind CSS v4 + shadcn/ui | Utility-first styling with composable primitives    |
-| Auth         | Clerk                       | User identity, sessions, role metadata, middleware  |
+| Auth         | Clerk                       | User identity, sessions, role metadata, proxy (`proxy.ts`) |
 | Database     | Prisma 7.8.0 + PostgreSQL (Neon) | Relational store for all platform data. Requires `@prisma/adapter-neon`. |
 | DB Driver    | `@prisma/adapter-neon` + `@neondatabase/serverless` | WebSocket transport (PrismaNeon); supports transactions. Node.js ≥ 22 required for native WebSocket. |
 | File Storage | Cloudinary                  | Portfolio images, vendor documents                  |
@@ -73,9 +73,9 @@
   created in our `User` table.
 - Admin role is assigned manually via Clerk dashboard —
   never through the app UI.
-- Clerk middleware (`middleware.ts`) protects all
-  routes outside the `(public)` group. Route group
-  layouts enforce role at the page level.
+- Clerk proxy (`proxy.ts`) protects all routes outside
+  the `(public)` group. Route group layouts enforce
+  role at the page level.
 - Ownership rules:
   - A vendor owns their `VendorProfile`, `Service`
     records, and `PortfolioItem` records.

@@ -51,30 +51,47 @@ project is and how it got there.
   command. `src/lib/db.ts` — `PrismaNeon` singleton with pooled
   `DATABASE_URL` for runtime queries. Initial migration
   `20260525154803_init` applied to Neon (Frankfurt). Schema validated.
-  Seed script (`prisma/seed.ts`) populates 5 users, 2 vendor profiles,
-  4 services, 1 booking (SE-2026-0001). `npm run build` passes.
+  Seed script (`prisma/seed.ts`) populates 5 users (1 admin, 2 customers,
+  3 vendor users), 3 vendor profiles (Folake's Kitchen / CATERING /
+  APPROVED, Tunde Lens Studio / PHOTOGRAPHY / APPROVED, House of Lush /
+  DECORATION / APPROVED), 6 services, 12 portfolio items, 1 booking
+  (SE-2026-0001, status PAID, whatsappRevealed true) with 1 Payment row
+  (status HELD, amountKobo 15,000,000). `npm run build` passes.
   `prisma migrate status` confirms 1 migration applied, database in sync.
   **Note:** To inspect data use `prisma studio`:
   `npx dotenv -e .env.local -- npx prisma studio`
+- **Phase 0 Unit 5: Clerk authentication with lazy user sync.**
+  `@clerk/nextjs@7.4.1` installed. `src/proxy.ts` — Next.js 16 proxy
+  (replaces deprecated `middleware.ts`); `clerkMiddleware()` with
+  `createRouteMatcher` for public routes (`/`, `/sign-in`, `/sign-up`,
+  `/api/webhooks`); unauthenticated access to protected routes redirects
+  to `/sign-in?redirect_url=<path>`. `src/app/layout.tsx` — `ClerkProvider`
+  added inside `ThemeProvider` with `hsl(var(--*))` appearance tokens
+  (auto-follows dark/light mode via CSS variables). Sign-in/sign-up pages
+  at `(auth)/sign-in/[[...sign-in]]` and `(auth)/sign-up/[[...sign-up]]`
+  with minimal centered layout (no nav, no theme toggle). `src/lib/auth.ts`
+  — `ensureUser()` (upsert on first auth), `getCurrentUser()` (lazy sync
+  trigger), `requireAuth()`, `requireRole()`. `src/lib/errors.ts` —
+  `AuthError`, `DatabaseSyncError`. `src/lib/validators/user.ts` — Zod
+  schema for user sync input. Test page updated with auth state section
+  showing email, full name, role, DB User ID, Clerk ID, sign-out button.
+  Context docs updated: `middleware.ts` → `proxy.ts` across all spec files.
 
 ## In Progress
 
-- None. Phase 0 Unit 4 complete.
+- None. Phase 0 Unit 5 complete.
 
 ## Next Up
 
 The next implementation units, in order:
 
-1. **Clerk auth**: Install Clerk, set up middleware,
-   create sign-in/sign-up pages. Verify a user can
-   sign up and `userId` flows to the server.
-2. **Role selection flow**: After sign-up, prompt for
-   role (customer or vendor). Write to Clerk metadata
-   and create a `User` row.
-3. **Route groups and layouts**: Create `(public)`,
+1. **Role selection flow**: After sign-up, prompt for
+   role (customer or vendor). Write to Clerk
+   `publicMetadata.role` and update the `User` row.
+2. **Route groups and layouts**: Create `(public)`,
    `(customer)`, `(vendor)`, `(admin)` groups with
-   role-gated middleware.
-4. **Landing page**: Build the home page with hero,
+   role-gated proxy checks.
+3. **Landing page**: Build the home page with hero,
    featured categories, and trust signals.
 
 ## Open Questions
@@ -121,6 +138,10 @@ The next implementation units, in order:
   MVP. Resist requests to add them prematurely —
   document them in `project-overview.md` under
   Phase 2 instead.
-- Phase 0 Units 1-4 complete in single session (May 25, 2026).
-     Ready to start Unit 5 (Clerk auth) fresh.
-     Prerequisite: Create Clerk account at clerk.com before next session.
+- Phase 0 Units 1-4 complete (May 25, 2026).
+- Phase 0 Unit 5 complete (May 26, 2026). Clerk account
+  was pre-created; keys were already in `.env.local`.
+- **Key decision recorded**: Next.js 16 deprecated
+  `middleware.ts` in favor of `proxy.ts`. All auth
+  protection lives in `src/proxy.ts`; all spec docs
+  updated accordingly.

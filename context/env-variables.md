@@ -152,6 +152,12 @@ of touching `process.env` directly.
 
 - Use test mode keys during development.
 - Switch to production keys before deploying live.
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` are
+  required from day one (Unit 5). The URL constants below are
+  set as code-level defaults in `ClerkProvider` props; if
+  added to `.env.local` they take priority.
+- `CLERK_WEBHOOK_SECRET` is only needed when the webhook
+  endpoint is wired up (future unit).
 - Webhook endpoint: `https://<your-domain>/api/webhooks/clerk`.
 - Subscribe to: `user.created`, `user.updated`,
   `user.deleted`.
