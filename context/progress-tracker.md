@@ -76,22 +76,36 @@ project is and how it got there.
   schema for user sync input. Test page updated with auth state section
   showing email, full name, role, DB User ID, Clerk ID, sign-out button.
   Context docs updated: `middleware.ts` → `proxy.ts` across all spec files.
+- **Phase 0 Unit 6: Role selection flow.**
+  `src/app/onboarding/role/page.tsx` — Server Component;
+  reads `currentUser().publicMetadata.role` (not `auth()` — see
+  code-standards.md Clerk section); redirects away if role already set or
+  if admin; otherwise renders role selection UI. `src/app/onboarding/role/actions.ts`
+  — `setUserRole("CUSTOMER" | "VENDOR")` Server Action; Zod guards against
+  ADMIN input; DB write first, Clerk metadata mirror second (partial failure
+  logs but does not fail action); redirects to `/` on success (TODO Phase 1:
+  VENDOR → `/vendor/onboarding`). `src/app/onboarding/role/_components/RoleCards.tsx`
+  — client component; two keyboard-accessible card buttons; CUSTOMER
+  (terracotta icon tint) + VENDOR (jade icon tint); `useTransition` for
+  inline loading state; returns AUTH_REQUIRED code → router.push to /sign-in,
+  INTERNAL_ERROR → Sonner toast; unexpected throws → generic Sonner toast.
+  `src/app/onboarding/layout.tsx` — centered layout with ThemeToggle for
+  all `/onboarding/*` pages. `context/code-standards.md` updated with
+  Clerk subsection (auth() vs currentUser(), clerkClient() factory,
+  atomicity pattern). `npm run build` passes.
 
 ## In Progress
 
-- None. Phase 0 Unit 5 complete.
+- None. Phase 0 Unit 6 complete.
 
 ## Next Up
 
 The next implementation units, in order:
 
-1. **Role selection flow**: After sign-up, prompt for
-   role (customer or vendor). Write to Clerk
-   `publicMetadata.role` and update the `User` row.
-2. **Route groups and layouts**: Create `(public)`,
+1. **Route groups and layouts**: Create `(public)`,
    `(customer)`, `(vendor)`, `(admin)` groups with
    role-gated proxy checks.
-3. **Landing page**: Build the home page with hero,
+2. **Landing page**: Build the home page with hero,
    featured categories, and trust signals.
 
 ## Open Questions

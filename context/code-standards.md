@@ -61,6 +61,26 @@
   export. Do not skip page titles.
 - Never use `<a>` for internal links. Use `<Link>`.
 
+## Clerk
+
+- `auth()` reads cached JWT session claims — fast, but
+  stale if `publicMetadata` was just mutated (e.g.,
+  immediately after `updateUserMetadata`). The new
+  metadata won't appear until the session token refreshes.
+- `currentUser()` makes a fresh Clerk API call — slower,
+  but always accurate. Use it when reading data that may
+  have just been mutated (e.g., `/onboarding/role` reads
+  `publicMetadata.role` to decide whether to redirect).
+- Rule: prefer `auth()` in hot paths; use `currentUser()`
+  when correctness after a recent metadata write matters.
+- `clerkClient` in v7 is an async factory. Always
+  `const client = await clerkClient()` before calling
+  methods on it.
+- Server Action atomicity: write DB first (source of
+  truth), then Clerk metadata (mirror). If Clerk write
+  fails, log server-side but do not fail the action or
+  roll back the DB write.
+
 ## React
 
 - Components are PascalCase. Hooks are `useCamelCase`.
