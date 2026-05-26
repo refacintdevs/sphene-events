@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -42,7 +43,27 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ClerkProvider
+            signInUrl="/sign-in"
+            signUpUrl="/sign-up"
+            signInFallbackRedirectUrl="/onboarding/role"
+            signUpFallbackRedirectUrl="/onboarding/role"
+            appearance={{
+              variables: {
+                colorPrimary: "hsl(var(--primary))",
+                colorBackground: "hsl(var(--background))",
+                colorText: "hsl(var(--foreground))",
+                colorInputBackground: "hsl(var(--card))",
+                colorInputText: "hsl(var(--card-foreground))",
+                colorDanger: "hsl(var(--destructive))",
+                borderRadius: "var(--radius)",
+                fontFamily: "var(--font-jakarta), sans-serif",
+                fontFamilyButtons: "var(--font-jakarta), sans-serif",
+              },
+            }}
+          >
+            {children}
+          </ClerkProvider>
         </ThemeProvider>
       </body>
     </html>

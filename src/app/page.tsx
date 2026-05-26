@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { SignOutButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getCurrentUser();
   return (
     <main className="min-h-screen px-6 py-16 md:px-12 md:py-24">
       <div className="mx-auto max-w-5xl">
@@ -26,6 +30,34 @@ export default function HomePage() {
           </div>
           <ThemeToggle />
         </header>
+
+        {/* Auth state — Unit 5 verification */}
+        <section className="mt-10 rounded-2xl border border-border bg-card p-6 text-card-foreground">
+          <h2 className="font-display text-lg font-semibold">Auth state</h2>
+          {user ? (
+            <div className="mt-4 space-y-2 text-sm">
+              <Row label="Email" value={user.email} />
+              <Row label="Full name" value={user.fullName} />
+              <Row label="Role" value={user.role} />
+              <Row label="DB User ID" value={user.id} />
+              <Row label="Clerk ID" value={user.clerkId} />
+              <div className="mt-4">
+                <SignOutButton>
+                  <Button variant="outline" size="sm">
+                    Sign out
+                  </Button>
+                </SignOutButton>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+              <span>Not signed in.</span>
+              <Button asChild size="sm">
+                <Link href="/sign-in">Sign in</Link>
+              </Button>
+            </div>
+          )}
+        </section>
 
         {/* Hero */}
         <section className="mt-20 md:mt-32">
@@ -145,10 +177,19 @@ export default function HomePage() {
 
         {/* Footer note */}
         <footer className="mt-20 border-t border-border pt-8 text-sm text-muted-foreground md:mt-32">
-          Phase 0 · Unit 3 — shadcn/ui components verified.
+          Phase 0 · Unit 5 — Clerk auth + lazy user sync verified.
         </footer>
       </div>
     </main>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <span className="w-28 shrink-0 text-muted-foreground">{label}</span>
+      <span className="break-all font-mono text-xs">{value}</span>
+    </div>
   );
 }
 
