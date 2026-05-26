@@ -6,14 +6,16 @@ project is and how it got there.
 
 ## Current Phase
 
-- Phase 0 — Foundation. Project initialization, stack
-  setup, and base configuration.
+- Phase 0 — Foundation. 6 of 8 units complete. Unit 7
+  (route groups) deferred to Phase 1 per AD-005.
+  One unit remaining: Unit 8 (landing page).
 
 ## Current Goal
 
-- Initialize the Next.js project with the full
-  documented stack and verify the build pipeline
-  works end to end.
+- Build the real landing page (Unit 8) — replaces the
+  throwaway test page at `src/app/page.tsx` with the
+  actual home page (hero, featured categories, featured
+  vendors from DB, trust signals, footer).
 
 ## Completed
 
@@ -102,11 +104,14 @@ project is and how it got there.
 
 The next implementation units, in order:
 
-1. **Route groups and layouts**: Create `(public)`,
-   `(customer)`, `(vendor)`, `(admin)` groups with
-   role-gated proxy checks.
-2. **Landing page**: Build the home page with hero,
-   featured categories, and trust signals.
+1. **Real landing page (Unit 8)**: Replace `src/app/page.tsx`
+   test page with the actual home page — sticky nav, hero
+   with search, how-it-works, featured categories, featured
+   vendors from DB (uses our seed data), trust signals,
+   CTA banner, footer. Last Phase 0 unit.
+2. **Phase 1 opens after Unit 8 completes.** First Phase 1
+   features: vendor search/browse with filters, vendor
+   detail page, vendor onboarding flow.
 
 ## Open Questions
 
@@ -138,6 +143,9 @@ The next implementation units, in order:
 | Phase 0  | Fraunces + Plus Jakarta Sans                    | Distinctive typography that avoids generic SaaS look (no Inter).                   |
 | 2026-05-25 | **AD-001: Prisma 7 + @prisma/adapter-neon** — `PrismaNeon` (WebSocket transport via `@neondatabase/serverless`) chosen over `PrismaNeonHttp` because it supports transactions, which we require for atomic booking + payment writes. `PrismaNeonHttp` would avoid persistent connections entirely but does not support multi-statement transactions. WebSocket still has cold-start cost, but is the correct trade-off for our financial integrity requirements. Runtime queries use `DATABASE_URL` (pooled via PgBouncer). Migrations use `DIRECT_URL` (direct TCP) via `prisma.config.ts`. | Prisma 7 removed implicit URL config from `schema.prisma`; adopting now avoids a future major-version migration. Neon is our committed provider. |
 | 2026-05-25 | **AD-002: Single `.env.local` source of truth** — All environment variables live in `.env.local`. Prisma CLI does not read `.env.local` by default. Rather than creating a duplicate `.env` file, we load vars via `dotenv-cli` (`npx dotenv -e .env.local --`) or inline PowerShell env injection before any `npx prisma` command. `--env-file .env.local` is NOT sufficient in Prisma 7 because `prisma.config.ts` is evaluated before CLI flags are processed. | Avoids env drift between `.env` and `.env.local`; keeps one canonical file. |
+| 2026-05-26 | **AD-003: Lazy user sync over webhook for MVP** — Instead of using a Clerk webhook handler at `/api/webhooks/clerk` to create `User` rows on `user.created` events, we lazy-sync inside `getCurrentUser()` (`src/lib/auth.ts`). The first time an authenticated user calls `getCurrentUser()`, `ensureUser()` upserts a `User` row by `clerkId`. This avoids needing a public webhook URL during local development (no ngrok required) and works identically in dev and production. The webhook handler can be added later when deploying to Vercel for redundancy, but is not required for correctness — lazy sync is sufficient. Trade-off: a user who signs up but never opens the app has no DB row, which is fine because they're not actually using the platform yet. | Removes ngrok/tunneling complexity from local dev. Same code path in dev and prod. |
+| 2026-05-27 | **AD-004: DB-first, Clerk-mirror atomicity for role writes** — When `setUserRole()` updates a user's role, it writes to two systems: our DB (`User.role`, the source of truth) and Clerk `publicMetadata.role` (the mirror for fast proxy checks). Order matters. Pattern: DB write first; if it succeeds, attempt Clerk write; if Clerk fails, log the error but DO NOT roll back the DB. The DB has the correct role; Clerk metadata is stale until a future re-sync or the next sign-in. The proxy will use DB role for authorization once role-gated routes land. The alternative (Clerk-first or transactional rollback) would either route based on stale metadata or require two-phase commit complexity unjustified at MVP scale. | Source-of-truth clarity beats two-phase commit complexity. Drift window is acceptable for non-financial state. |
+| 2026-05-27 | **AD-005: Defer route groups and role-gated proxy to Phase 1** — Unit 7 was originally planned as the final structural unit of Phase 0: create route groups `(public)`/`(customer)`/`(vendor)`/`(admin)` with role-gated logic in `proxy.ts`. Decision: defer. Building empty route group folders with no real content would be speculative scaffolding for dashboards not yet designed. The role-gating logic in `proxy.ts` will be added incrementally when Phase 1 features (vendor onboarding, customer dashboard) need it. Trade-off: `proxy.ts` will be edited multiple times during Phase 1 instead of once now. Acceptable because role-gating decisions are better made under real feature requirements than in the abstract. The `(public)`/`(customer)`/`(vendor)`/`(admin)` pattern documented in `architecture.md` remains the intended end state — we just build it incrementally rather than upfront. | Speculative scaffolding adds maintenance cost without value. Build when needed. |
 
 ## Session Notes
 
@@ -162,9 +170,6 @@ The next implementation units, in order:
 - Phase 0 Units 1-6 complete (May 25-26, 2026).
   Two long sessions. Auth flow + role selection verified end-to-end
   with fresh user sign-up.
-- Next: Unit 7 (route groups + role-gated proxy).
-  Open question before starting: which role-gated paths exist when
-  /customer, /vendor, /admin dashboards don't yet exist?
-  Probably matters more for Phase 1 — we may keep Unit 7 minimal
-  (just guard /onboarding/* and add stub routes for future dashboards)
-  and let route groups emerge naturally as Phase 1 features land.
+- 2026-05-27: Phase 0 Units 5-6 completed in prior session. Unit 7
+  deferred per AD-005. Continuing to Unit 8 (landing page) directly.
+  After Unit 8, Phase 0 is sealed and Phase 1 opens.
