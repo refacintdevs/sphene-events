@@ -159,3 +159,12 @@ The next implementation units, in order:
   `middleware.ts` in favor of `proxy.ts`. All auth
   protection lives in `src/proxy.ts`; all spec docs
   updated accordingly.
+- Phase 0 Units 1-6 complete (May 25-26, 2026).
+  Two long sessions. Auth flow + role selection verified end-to-end
+  with fresh user sign-up.
+- Next: Unit 7 (route groups + role-gated proxy).
+  Open question before starting: which role-gated paths exist when
+  /customer, /vendor, /admin dashboards don't yet exist?
+  Probably matters more for Phase 1 — we may keep Unit 7 minimal
+  (just guard /onboarding/* and add stub routes for future dashboards)
+  and let route groups emerge naturally as Phase 1 features land.
