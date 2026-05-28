@@ -69,6 +69,10 @@ src/generated/
 
 # Logs
 *.log
+# Dev server output dumps
+dev-*.txt
+*-out.txt
+*-err.txt
 
 # Claude Code local state
 .claude/

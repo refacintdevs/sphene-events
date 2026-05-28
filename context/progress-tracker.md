@@ -6,16 +6,13 @@ project is and how it got there.
 
 ## Current Phase
 
-- Phase 0 — Foundation. 6 of 8 units complete. Unit 7
-  (route groups) deferred to Phase 1 per AD-005.
-  One unit remaining: Unit 8 (landing page).
+- Phase 0 — Foundation COMPLETE (8 of 8 units, with Unit 7
+  deferred to Phase 1 per AD-005). Ready to begin Phase 1.
 
 ## Current Goal
 
-- Build the real landing page (Unit 8) — replaces the
-  throwaway test page at `src/app/page.tsx` with the
-  actual home page (hero, featured categories, featured
-  vendors from DB, trust signals, footer).
+- Phase 0 sealed. Next: begin Phase 1 — vendor onboarding
+  flow and vendor search/browse.
 
 ## Completed
 
@@ -95,23 +92,30 @@ project is and how it got there.
   all `/onboarding/*` pages. `context/code-standards.md` updated with
   Clerk subsection (auth() vs currentUser(), clerkClient() factory,
   atomicity pattern). `npm run build` passes.
+- **Phase 0 Unit 8: Real landing page.** Replaced test page with full
+  home page — sticky nav (scroll-aware, mobile sheet), hero with
+  functional search (→ /vendors?category=X&q=Y), how-it-works, featured
+  categories with live DB counts, featured vendors fetched from DB (first
+  real full-stack data read), trust signals, vendor CTA, footer. ISR with
+  1h revalidate. Two runtime bugs (mobile sheet, scroll detection) caught
+  in visual review and fixed. Components in `src/components/landing/`,
+  `src/components/nav/`, `src/components/vendor/`. `npm run build` clean.
 
 ## In Progress
 
-- None. Phase 0 Unit 6 complete.
+- None. Phase 0 complete.
 
 ## Next Up
 
-The next implementation units, in order:
+Phase 1 first units, in order:
 
-1. **Real landing page (Unit 8)**: Replace `src/app/page.tsx`
-   test page with the actual home page — sticky nav, hero
-   with search, how-it-works, featured categories, featured
-   vendors from DB (uses our seed data), trust signals,
-   CTA banner, footer. Last Phase 0 unit.
-2. **Phase 1 opens after Unit 8 completes.** First Phase 1
-   features: vendor search/browse with filters, vendor
-   detail page, vendor onboarding flow.
+1. **Vendor onboarding flow** — the 4-step form from
+   `feature-specs.md` section 2 (business info, service
+   listing, portfolio upload, submit for review).
+2. **Vendor search/browse page** (`/vendors`) with category
+   and city filters.
+3. **Vendor detail page** (`/vendors/[slug]`) — full profile,
+   services, portfolio, booking CTA.
 
 ## Open Questions
 
@@ -146,6 +150,7 @@ The next implementation units, in order:
 | 2026-05-26 | **AD-003: Lazy user sync over webhook for MVP** — Instead of using a Clerk webhook handler at `/api/webhooks/clerk` to create `User` rows on `user.created` events, we lazy-sync inside `getCurrentUser()` (`src/lib/auth.ts`). The first time an authenticated user calls `getCurrentUser()`, `ensureUser()` upserts a `User` row by `clerkId`. This avoids needing a public webhook URL during local development (no ngrok required) and works identically in dev and production. The webhook handler can be added later when deploying to Vercel for redundancy, but is not required for correctness — lazy sync is sufficient. Trade-off: a user who signs up but never opens the app has no DB row, which is fine because they're not actually using the platform yet. | Removes ngrok/tunneling complexity from local dev. Same code path in dev and prod. |
 | 2026-05-27 | **AD-004: DB-first, Clerk-mirror atomicity for role writes** — When `setUserRole()` updates a user's role, it writes to two systems: our DB (`User.role`, the source of truth) and Clerk `publicMetadata.role` (the mirror for fast proxy checks). Order matters. Pattern: DB write first; if it succeeds, attempt Clerk write; if Clerk fails, log the error but DO NOT roll back the DB. The DB has the correct role; Clerk metadata is stale until a future re-sync or the next sign-in. The proxy will use DB role for authorization once role-gated routes land. The alternative (Clerk-first or transactional rollback) would either route based on stale metadata or require two-phase commit complexity unjustified at MVP scale. | Source-of-truth clarity beats two-phase commit complexity. Drift window is acceptable for non-financial state. |
 | 2026-05-27 | **AD-005: Defer route groups and role-gated proxy to Phase 1** — Unit 7 was originally planned as the final structural unit of Phase 0: create route groups `(public)`/`(customer)`/`(vendor)`/`(admin)` with role-gated logic in `proxy.ts`. Decision: defer. Building empty route group folders with no real content would be speculative scaffolding for dashboards not yet designed. The role-gating logic in `proxy.ts` will be added incrementally when Phase 1 features (vendor onboarding, customer dashboard) need it. Trade-off: `proxy.ts` will be edited multiple times during Phase 1 instead of once now. Acceptable because role-gating decisions are better made under real feature requirements than in the abstract. The `(public)`/`(customer)`/`(vendor)`/`(admin)` pattern documented in `architecture.md` remains the intended end state — we just build it incrementally rather than upfront. | Speculative scaffolding adds maintenance cost without value. Build when needed. |
+| 2026-05-28 | **AD-006: ISR on landing page (1h revalidate)** — The home page fetches vendor counts and featured vendors from the DB. `export const revalidate = 3600` enables ISR: served from cache, regenerated in the background on the first request after each 1-hour window. Trade-off: up to 1 hour of stale data after a vendor is approved. Acceptable for MVP because vendor approvals are manual and infrequent. Alternative (`force-dynamic`) would hit the DB on every page view — unnecessary load for a public marketing page. | Fresh-enough data without per-request DB load. |
 
 ## Session Notes
 
@@ -173,3 +178,9 @@ The next implementation units, in order:
 - 2026-05-27: Phase 0 Units 5-6 completed in prior session. Unit 7
   deferred per AD-005. Continuing to Unit 8 (landing page) directly.
   After Unit 8, Phase 0 is sealed and Phase 1 opens.
+- 2026-05-28: Phase 0 complete. All 8 units done (7 deferred). Landing
+  page is the first full-stack surface (DB → Prisma → Server Component
+  → UI). Visual review caught two runtime bugs the build missed —
+  reinforces: UI units require browser verification, not just clean
+  builds. Known cosmetic issue: font preload console warnings (harmless,
+  defer cleanup). Ready for Phase 1.
