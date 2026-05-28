@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postinstall": "dotenv -e .env.local -- prisma generate",
     "start": "next start",
     "lint": "eslint",
     "db:studio": "dotenv -e .env.local -- prisma studio",
