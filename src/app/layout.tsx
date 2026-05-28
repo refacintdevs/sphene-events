@@ -20,8 +20,8 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Sphene Events — Verified vendors. Trusted bookings.",
-    template: "%s · Sphene Events",
+    default: "EventIQ — Verified vendors. Trusted bookings.",
+    template: "%s · EventIQ",
   },
   description:
     "Book verified caterers, decorators, photographers and more for events across Nigeria. Escrow-protected payments. Real reviews.",

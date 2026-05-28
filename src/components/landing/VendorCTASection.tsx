@@ -13,7 +13,7 @@ export function VendorCTASection() {
           Are you an event vendor in Lagos?
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-base text-primary-foreground/80">
-          Join Sphene Events and connect with customers looking for exactly what
+          Join EventIQ and connect with customers looking for exactly what
           you offer. Verification is free during our beta period.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

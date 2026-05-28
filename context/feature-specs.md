@@ -384,7 +384,7 @@ Sent via Resend.
 - Trust signals: "Verified vendors", "Secure escrow",
   "Dispute protection".
 - Testimonials (curated, real).
-- CTA: "Are you a vendor? Join Sphene Events."
+- CTA: "Are you a vendor? Join EventIQ."
 
 ### How It Works (`/how-it-works`)
 

@@ -31,10 +31,10 @@ export function FooterSection() {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-1">
               <span className="font-display text-lg font-black text-foreground">
-                Sphene
+                Event
               </span>
               <span className="font-display text-lg font-black text-primary">
-                Events
+                IQ
               </span>
             </div>
             <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
@@ -103,7 +103,7 @@ export function FooterSection() {
         {/* Bottom bar */}
         <div className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <p>© {new Date().getFullYear()} Sphene Events. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} EventIQ. All rights reserved.</p>
             <p className="text-xs text-muted-foreground/70">
               {/* RC number to be updated before public launch */}
               RC — (registration pending) · Naira payments processed securely via Paystack

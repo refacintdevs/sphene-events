@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { RoleCards } from "./_components/RoleCards";
 
 export const metadata: Metadata = {
-  title: "Choose your role · Sphene Events",
+  title: "Choose your role · EventIQ",
 };
 
 export default async function RoleSelectionPage() {
@@ -32,10 +32,10 @@ export default async function RoleSelectionPage() {
         Getting started
       </p>
       <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-        Welcome to Sphene Events
+        Welcome to EventIQ
       </h1>
       <p className="mt-4 max-w-md text-base text-muted-foreground">
-        How will you use Sphene Events? You can change this later by contacting
+        How will you use EventIQ? You can change this later by contacting
         support.
       </p>
       <RoleCards />

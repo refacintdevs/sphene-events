@@ -28,7 +28,7 @@ export function TrustSection() {
             Built on trust
           </p>
           <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-            Why Sphene Events is different
+            Why EventIQ is different
           </h2>
         </div>
 

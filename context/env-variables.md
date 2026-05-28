@@ -47,10 +47,10 @@ to code.
 
 | Variable                              | Example         | Where to get it                          |
 | ------------------------------------- | --------------- | ---------------------------------------- |
-| `CLOUDINARY_CLOUD_NAME`               | `sphene-events` | Cloudinary dashboard → Product Environment. |
+| `CLOUDINARY_CLOUD_NAME`               | `eventiq` | Cloudinary dashboard → Product Environment. |
 | `CLOUDINARY_API_KEY`                  | `123456789...`  | Cloudinary dashboard → Account Details.  |
 | `CLOUDINARY_API_SECRET`               | `Ab1Cd2...`     | Cloudinary dashboard → Account Details.  |
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`   | `sphene-events` | Same value as above, for client uploads. |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`   | `eventiq` | Same value as above, for client uploads. |
 | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`| `nv_unsigned`   | Cloudinary dashboard → Settings → Upload presets. Create unsigned preset. |
 
 ### Resend (Email)
@@ -58,7 +58,7 @@ to code.
 | Variable        | Example       | Where to get it                          |
 | --------------- | ------------- | ---------------------------------------- |
 | `RESEND_API_KEY` | `re_...`     | Resend dashboard → API Keys.             |
-| `EMAIL_FROM`    | `Sphene Events <hello@spheneevents.com>` | Must be a verified Resend domain. |
+| `EMAIL_FROM`    | `EventIQ <hello@eventiq.com>` | Must be a verified Resend domain. |
 
 ### Cron Jobs
 
@@ -70,8 +70,8 @@ to code.
 
 | Variable                  | Example                       | Where to get it                       |
 | ------------------------- | ----------------------------- | ------------------------------------- |
-| `NEXT_PUBLIC_APP_URL`     | `https://spheneevents.com`    | Production URL.                       |
-| `NEXT_PUBLIC_APP_NAME`    | `Sphene Events`               | Brand name.                           |
+| `NEXT_PUBLIC_APP_URL`     | `https://eventiq.com`    | Production URL.                       |
+| `NEXT_PUBLIC_APP_NAME`    | `EventIQ`               | Brand name.                           |
 | `ADMIN_EMAIL_ALLOWLIST`   | `you@email.com,team@email.com`| Comma-separated admin emails (for safety check). |
 
 ## Template `.env.example`
@@ -110,7 +110,7 @@ CRON_SECRET=
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=Sphene Events
+NEXT_PUBLIC_APP_NAME=EventIQ
 ADMIN_EMAIL_ALLOWLIST=
 ```
 

@@ -33,7 +33,7 @@ export function HowItWorksSection() {
           Simple and transparent
         </p>
         <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-          How Sphene Events works
+          How EventIQ works
         </h2>
       </div>
 

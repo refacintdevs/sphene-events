@@ -18,7 +18,7 @@ export function FeaturedVendorsSection({ vendors }: FeaturedVendorsSectionProps)
           Featured vendors
         </h2>
         <p className="mx-auto mt-4 max-w-lg text-base text-muted-foreground">
-          Every vendor on Sphene Events is reviewed and approved by our team
+          Every vendor on EventIQ is reviewed and approved by our team
           before appearing in search results.
         </p>
       </div>

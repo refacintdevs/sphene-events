@@ -1,6 +1,6 @@
-# Context Files — Sphene Events
+# Context Files — EventIQ
 
-This folder is the source of truth for the Sphene Events
+This folder is the source of truth for the EventIQ
 project. Every implementation decision references one
 of these files. When in doubt, the docs win.
 
@@ -74,8 +74,8 @@ this order:
 
 ## Project Name
 
-Working name: **Sphene Events**. May change before
-launch. If renamed, update:
+Brand name: **EventIQ** (renamed from "Sphene Events"
+on 2026-05-28). If renamed again, update:
 
 - `project-overview.md` (title and references)
 - `env-variables.md` (`NEXT_PUBLIC_APP_NAME`)

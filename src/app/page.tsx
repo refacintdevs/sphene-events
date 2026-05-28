@@ -14,7 +14,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Sphene Events — Verified Event Vendors in Lagos",
+    absolute: "EventIQ — Verified Event Vendors in Lagos",
   },
   description:
     "Find and book verified caterers, decorators, and photographers for your next event. Escrow-backed payments. Real reviews. Lagos, Nigeria.",

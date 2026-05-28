@@ -73,13 +73,13 @@ export function SiteNav() {
         <Link
           href="/"
           className="flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
-          aria-label="Sphene Events — Home"
+          aria-label="EventIQ — Home"
         >
           <span className="font-display text-xl font-black tracking-tight text-foreground">
-            Sphene
+            Event
           </span>
           <span className="font-display text-xl font-black tracking-tight text-primary">
-            Events
+            IQ
           </span>
         </Link>
 
@@ -183,10 +183,10 @@ export function SiteNav() {
               <SheetHeader>
                 <SheetTitle className="text-left">
                   <span className="font-display text-lg font-black text-foreground">
-                    Sphene
+                    Event
                   </span>
                   <span className="font-display text-lg font-black text-primary">
-                    {" "}Events
+                    IQ
                   </span>
                 </SheetTitle>
               </SheetHeader>

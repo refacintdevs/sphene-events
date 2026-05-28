@@ -4,9 +4,9 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-# Sphene Events — Agent Instructions
+# EventIQ — Agent Instructions
 
-You are working on **Sphene Events**, a web-based event vendor booking and marketplace platform for the Nigerian market. The project follows a strict spec-driven workflow defined in the `context/` folder.
+You are working on **EventIQ**, a web-based event vendor booking and marketplace platform for the Nigerian market. The project follows a strict spec-driven workflow defined in the `context/` folder.
 
 ## Read These Files Before Any Implementation
 

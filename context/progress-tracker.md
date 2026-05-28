@@ -129,9 +129,9 @@ Phase 1 first units, in order:
 - Admin role assignment: which Clerk user(s) get admin
   on day one? Need at least one before vendor
   verification flow can be tested.
-- Domain name and brand: "Sphene Events" is the confirmed
-  name. Finalize domain before public launch
-  preparation.
+- Domain name and brand: "EventIQ" is the confirmed
+  name (renamed from "Sphene Events" on 2026-05-28).
+  Finalize domain before public launch preparation.
 
 ## Architecture Decisions
 
