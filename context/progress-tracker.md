@@ -133,6 +133,24 @@ Phase 1 first units, in order:
   name (renamed from "Sphene Events" on 2026-05-28).
   Finalize domain before public launch preparation.
 
+### Deferred / Loose Ends
+
+- Manual rename tasks still pending: (1) `EMAIL_FROM`
+  in `.env.local` (update to `EventIQ <hello@eventiq.com>`),
+  (2) Clerk dashboard app name (verify wordmark reads
+  EventIQ in hosted Clerk UI).
+- Clerk is on test keys — a production Clerk instance
+  is required before real-user launch.
+- Real domain (`eventiq.ng` or client choice) to be
+  attached to Vercel when confirmed; current URL is
+  `sphene-events.vercel.app` (cosmetic only).
+- EventIQ namespace / trademark concern pending client
+  confirmation — multiple existing event-software
+  companies use the name.
+- Font preload console warnings: harmless, defer cleanup.
+- `lib/env.ts` startup env validation not yet created —
+  add before Phase 1 ships.
+
 ## Architecture Decisions
 
 | Date     | Decision                                        | Why                                                                                |
@@ -184,3 +202,11 @@ Phase 1 first units, in order:
   reinforces: UI units require browser verification, not just clean
   builds. Known cosmetic issue: font preload console warnings (harmless,
   defer cleanup). Ready for Phase 1.
+- 2026-05-28: First Vercel production deployment successful. Live at
+  sphene-events.vercel.app (subdomain still says sphene-events;
+  eventiq.vercel.app was taken — cosmetic, real domain comes later).
+  Build passed first try with the postinstall prisma generate fix. Full
+  stack verified in production: landing page renders DB-seeded vendors
+  (Folake's Kitchen, Tunde Lens Studio, House of Lush), auth sign-in
+  works against production Neon DB. Shared with client as an early
+  preview with sample data.
