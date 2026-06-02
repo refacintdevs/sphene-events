@@ -1,0 +1,57 @@
+Requirements Needed to Write Chapter Four – Implementation
+
+1. Working code for all modules (user, event planning, vendor discovery, booking, payments, chatbot, reviews) with screenshots of each running interface.
+2. Database schema – final SQL or ORM tables including:
+   · users, vendors, events, vendor_requests, quotes, bookings
+   · payment_transactions, conversations, messages, security_logs
+3. Sample populated data (at least 5 rows per core table) to demonstrate real usage.
+4. Security implementation details:
+   · Authentication code (login, registration, JWT/session)
+   · Role-based access control (Admin, Event Planner, Client, Vendor)
+   · Password hashing method (e.g., bcrypt)
+   · Encryption for sensitive data (payment tokens, personal info)
+   · CSRF/CORS configuration
+   · Rate limiting rules
+5. Payment gateway integration:
+   · Gateway chosen (Stripe/Paystack/PayPal)
+   · API keys configuration (.env example)
+   · Payment flow screenshots (sandbox/test mode)
+   · Webhook handler code (for payment confirmation)
+   · Refund logic (if applicable)
+6. Chatbot implementation:
+   · Real-time technology (WebSocket / Socket.io / Laravel Reverb)
+   · Database structure for conversations and messages
+   · Frontend chat UI screenshots (message input, bubbles, typing indicator)
+   · Code for sending/receiving messages
+   · Read receipts / unread badge logic
+7. System architecture diagram showing all components:
+   · Web server (Nginx/Apache)
+   · Application backend (Laravel/Django/Node.js)
+   · Database (MySQL/PostgreSQL)
+   · WebSocket server
+   · Payment gateway (external)
+   · SSL/TLS encryption
+8. User interface walkthrough (annotated screenshots) for each user role:
+   · Event Planner – create event, search vendors, send requests, view quotes, pay, chat with clients
+   · Client – register, browse planners, send messages via chatbot, make payments
+   · Admin – approve vendors, view transactions, monitor chatbot logs
+9. Testing evidence:
+   · Unit test results (screenshots of passing tests)
+   · Test cases table for security (unauthorized access blocked)
+   · Test cases for payment (success, failure, webhook)
+   · Test cases for chatbot (real-time message delivery)
+   · Bug log (issues found and fixes applied)
+10. Deployment / environment setup:
+    · Steps to run the project locally (clone, install deps, migrate, seed, start server)
+    · Environment variables required (DB, payment keys, WebSocket config)
+    · SSL certificate setup (or self-signed for development)
+11. Assumptions and constraints from your design:
+    · Payment is in sandbox mode (no real money)
+    · Chatbot supports only one-to-one conversations
+    · All communication is encrypted at rest
+    · Manual admin approval for new vendors
+12. Code snippets for critical functions (not entire files):
+    · Payment controller (charge/deposit)
+    · WebSocket event handler for chat
+    · Middleware for role-based access
+    · Database transaction for booking + payment

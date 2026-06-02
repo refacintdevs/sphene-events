@@ -6,13 +6,11 @@ project is and how it got there.
 
 ## Current Phase
 
-- Phase 0 — Foundation COMPLETE (8 of 8 units, with Unit 7
-  deferred to Phase 1 per AD-005). Ready to begin Phase 1.
+- Phase 1 — University Implementation. Phase 0 sealed and deployed. Building Phase 1 under final-year project constraints documented in academic-context.md. 4 weeks to submission. Weekly plan in phase-1-roadmap.md.
 
 ## Current Goal
 
-- Phase 0 sealed. Next: begin Phase 1 — vendor onboarding
-  flow and vendor search/browse.
+- Phase 1 Week 1 — customer-facing core + admin spine. First task: extract Phase 0 bug log to docs/bug-log.md while details are fresh (Unit 1.0).
 
 ## Completed
 
@@ -107,18 +105,18 @@ project is and how it got there.
 
 ## Next Up
 
-Phase 1 first units, in order:
+Phase 1 Week 1 units, in order:
 
-1. **Vendor onboarding flow** — the 4-step form from
-   `feature-specs.md` section 2 (business info, service
-   listing, portfolio upload, submit for review).
-2. **Vendor search/browse page** (`/vendors`) with category
-   and city filters.
-3. **Vendor detail page** (`/vendors/[slug]`) — full profile,
-   services, portfolio, booking CTA.
+1. **Unit 1.0:** Extract bug log to `docs/bug-log.md`
+2. **Unit 1.1:** Cloudinary setup (account + env vars + `next.config.ts`)
+3. **Unit 1.2:** Vendors browse page (`/vendors`)
+4. **Unit 1.3:** Vendor detail page (`/vendors/[slug]`)
+5. **Unit 1.4:** Admin shell + verification queue (opens deferred AD-005 work)
+6. **Unit 1.5:** Seed data expansion to satisfy Requirement 3 (5+ rows per core table)
 
 ## Open Questions
 
+- University grading rubric not obtained. Plan based on requirements document only. Re-prioritize if rubric becomes available.
 - Cloudinary account: free tier or paid from day one?
   Resolve before Phase 1 portfolio upload work.
 - Resend domain verification: which domain to use for
@@ -169,6 +167,7 @@ Phase 1 first units, in order:
 | 2026-05-27 | **AD-004: DB-first, Clerk-mirror atomicity for role writes** — When `setUserRole()` updates a user's role, it writes to two systems: our DB (`User.role`, the source of truth) and Clerk `publicMetadata.role` (the mirror for fast proxy checks). Order matters. Pattern: DB write first; if it succeeds, attempt Clerk write; if Clerk fails, log the error but DO NOT roll back the DB. The DB has the correct role; Clerk metadata is stale until a future re-sync or the next sign-in. The proxy will use DB role for authorization once role-gated routes land. The alternative (Clerk-first or transactional rollback) would either route based on stale metadata or require two-phase commit complexity unjustified at MVP scale. | Source-of-truth clarity beats two-phase commit complexity. Drift window is acceptable for non-financial state. |
 | 2026-05-27 | **AD-005: Defer route groups and role-gated proxy to Phase 1** — Unit 7 was originally planned as the final structural unit of Phase 0: create route groups `(public)`/`(customer)`/`(vendor)`/`(admin)` with role-gated logic in `proxy.ts`. Decision: defer. Building empty route group folders with no real content would be speculative scaffolding for dashboards not yet designed. The role-gating logic in `proxy.ts` will be added incrementally when Phase 1 features (vendor onboarding, customer dashboard) need it. Trade-off: `proxy.ts` will be edited multiple times during Phase 1 instead of once now. Acceptable because role-gating decisions are better made under real feature requirements than in the abstract. The `(public)`/`(customer)`/`(vendor)`/`(admin)` pattern documented in `architecture.md` remains the intended end state — we just build it incrementally rather than upfront. | Speculative scaffolding adds maintenance cost without value. Build when needed. |
 | 2026-05-28 | **AD-006: ISR on landing page (1h revalidate)** — The home page fetches vendor counts and featured vendors from the DB. `export const revalidate = 3600` enables ISR: served from cache, regenerated in the background on the first request after each 1-hour window. Trade-off: up to 1 hour of stale data after a vendor is approved. Acceptable for MVP because vendor approvals are manual and infrequent. Alternative (`force-dynamic`) would hit the DB on every page view — unnecessary load for a public marketing page. | Fresh-enough data without per-request DB load. |
+| 2026-06-02 | **AD-007: Server-Sent Events over WebSocket for chat** — Real-time chat uses one-way SSE (server → client) instead of WebSocket. Client sends messages via standard POST. Decision driven by: (1) simplicity in a 4-week academic timeline, (2) Next.js native support without separate server infrastructure, (3) sufficient for one-to-one booking-scoped chat. WebSocket considered and rejected for this scope. Documented in chapter-4-evidence.md as a legitimate alternative satisfying Requirement 6 (university requirements doc lists WebSocket/Socket.io/Laravel Reverb as examples, not a closed list). | One-way real-time is enough; cuts implementation complexity substantially. |
 
 ## Session Notes
 
@@ -210,3 +209,4 @@ Phase 1 first units, in order:
   (Folake's Kitchen, Tunde Lens Studio, House of Lush), auth sign-in
   works against production Neon DB. Shared with client as an early
   preview with sample data.
+- 2026-06-02: Phase 1 opened under academic constraints. Project re-scoped from indefinite production marketplace to 4-week dissertation deliverable. Three new planning docs added: academic-context.md (constraints), phase-1-roadmap.md (week-by-week), chapter-4-evidence.md (requirement tracking). Live Vercel deployment maintained as continuous demo URL.
