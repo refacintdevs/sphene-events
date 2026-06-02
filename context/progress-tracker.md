@@ -57,6 +57,19 @@ project is and how it got there.
   `prisma migrate status` confirms 1 migration applied, database in sync.
   **Note:** To inspect data use `prisma studio`:
   `npx dotenv -e .env.local -- npx prisma studio`
+- **Phase 1 Unit 1.0: Bug log extraction.** Created `docs/bug-log.md`
+  populated with 8 Phase 0 bugs (seed deviation, actions.ts return type,
+  mobile sheet, scroll detection, Prisma 7 DIRECT_URL eager eval, cls
+  pager trap, .gitignore wildcard, LF/CRLF). Each bug has full detail:
+  ID, Phase/Unit, Date, Description, Root Cause, Fix, Lesson Learned.
+  Captured while session memory was fresh.
+- **Phase 1 Unit 1.1: Cloudinary setup.** Free-tier account created
+  (cloud name: dxiyxab2x). Unsigned upload preset `eventiq_unsigned`
+  configured for portfolio uploads (folder eventiq/portfolio, max 5 MB).
+  Five `CLOUDINARY_*` env vars added to `.env.local` and Vercel (all
+  three environments). `next.config.ts` updated with
+  `images.remotePatterns` for `res.cloudinary.com` and `placehold.co`.
+  Manual upload tested in Cloudinary Media Library; verified working.
 - **Phase 0 Unit 5: Clerk authentication with lazy user sync.**
   `@clerk/nextjs@7.4.1` installed. `src/proxy.ts` — Next.js 16 proxy
   (replaces deprecated `middleware.ts`); `clerkMiddleware()` with
@@ -105,14 +118,20 @@ project is and how it got there.
 
 ## Next Up
 
-Phase 1 Week 1 units, in order:
+Phase 1 Week 1 remaining units, then Week 2:
 
-1. **Unit 1.0:** Extract bug log to `docs/bug-log.md`
-2. **Unit 1.1:** Cloudinary setup (account + env vars + `next.config.ts`)
-3. **Unit 1.2:** Vendors browse page (`/vendors`)
-4. **Unit 1.3:** Vendor detail page (`/vendors/[slug]`)
-5. **Unit 1.4:** Admin shell + verification queue (opens deferred AD-005 work)
-6. **Unit 1.5:** Seed data expansion to satisfy Requirement 3 (5+ rows per core table)
+1. **Unit 1.2:** Vendors browse page (`/vendors`) — URL-driven filters,
+   pagination, empty states, Server Component.
+2. **Unit 1.3:** Vendor detail page (`/vendors/[slug]`) — hero, services,
+   portfolio grid, reviews section (empty), 404 for unverified.
+3. **Unit 1.4:** Admin shell + verification queue — role-gated `/admin/*`,
+   approve/reject/request-info on pending vendors (opens AD-005).
+4. **Unit 1.5:** Seed data expansion — 5+ rows per core table for
+   Requirement 3; varied booking statuses for realistic dashboards.
+
+**Week 2 preview:** vendor onboarding (4-step form), booking flow
+(4-screen), Paystack sandbox integration, vendor bookings dashboard,
+customer dashboard skeleton.
 
 ## Open Questions
 
@@ -210,3 +229,5 @@ Phase 1 Week 1 units, in order:
   works against production Neon DB. Shared with client as an early
   preview with sample data.
 - 2026-06-02: Phase 1 opened under academic constraints. Project re-scoped from indefinite production marketplace to 4-week dissertation deliverable. Three new planning docs added: academic-context.md (constraints), phase-1-roadmap.md (week-by-week), chapter-4-evidence.md (requirement tracking). Live Vercel deployment maintained as continuous demo URL.
+- 2026-06-02: Phase 1 Unit 1.0 complete. Bug log extracted while session memory was freshest.
+- 2026-06-02: Phase 1 Unit 1.1 complete. Cloudinary free-tier account active; next.config.ts updated.
