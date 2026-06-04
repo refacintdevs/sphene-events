@@ -10,7 +10,7 @@ project is and how it got there.
 
 ## Current Goal
 
-- Phase 1 Week 1 — customer-facing core + admin spine. First task: extract Phase 0 bug log to docs/bug-log.md while details are fresh (Unit 1.0).
+- Phase 1 Week 1 — Unit 1.5 next: seed data expansion (5+ rows per core table).
 
 ## Completed
 
@@ -63,6 +63,28 @@ project is and how it got there.
   pager trap, .gitignore wildcard, LF/CRLF). Each bug has full detail:
   ID, Phase/Unit, Date, Description, Root Cause, Fix, Lesson Learned.
   Captured while session memory was fresh.
+- **Phase 1 Unit 1.2: Vendors browse page (`/vendors`).** Public, server-
+  rendered browse page with URL-driven filters and offset pagination.
+  `src/proxy.ts` updated — `/vendors(.*)` is now a public route (covers
+  Unit 1.3 detail page too). `src/lib/validators/vendor-search.ts` —
+  Zod schema with per-field `.catch(default)` for graceful URL degradation
+  (deliberate deviation from invariant 5, documented in feature-specs.md).
+  `src/services/vendor.ts` — first service-layer file; `searchVendors()`
+  queries DB (APPROVED, non-suspended, ≥1 active service), computes
+  derived fields app-side (startingPriceKobo, avgRating, reviewCount,
+  primaryCategory), applies price-band filter, sorts, paginates (20/page).
+  `VendorCard.tsx` extended with optional `avgRating`/`reviewCount`; shows
+  "New" chip when no reviews, star rating otherwise. Tailwind v4 canonical
+  classes applied (`aspect-4/5`, `bg-linear-to-br`). `EmptyState.tsx` —
+  new shared component (heading + description + optional CTA).
+  `FilterSidebar.tsx` — server `<form method="GET">` with q text, category
+  checkboxes, city select (disabled — Lagos only), price-band radios, date
+  input, sort select. `MobileFilterSheet.tsx` — thin "use client" wrapper
+  using shadcn Sheet in uncontrolled mode (BUG-003). Vendors layout at
+  `app/vendors/layout.tsx` keeps SiteNav mounted during loading.
+  `loading.tsx` — shape-matched skeleton grid (6 cards + sidebar).
+  `npm run build` passes clean. Scoped deviations noted in
+  `feature-specs.md §4`.
 - **Phase 1 Unit 1.1: Cloudinary setup.** Free-tier account created
   (cloud name: dxiyxab2x). Unsigned upload preset `eventiq_unsigned`
   configured for portfolio uploads (folder eventiq/portfolio, max 5 MB).
@@ -114,19 +136,13 @@ project is and how it got there.
 
 ## In Progress
 
-- None. Phase 0 complete.
+- None. Unit 1.4 complete.
 
 ## Next Up
 
-Phase 1 Week 1 remaining units, then Week 2:
+Phase 1 Week 1 remaining, then Week 2:
 
-1. **Unit 1.2:** Vendors browse page (`/vendors`) — URL-driven filters,
-   pagination, empty states, Server Component.
-2. **Unit 1.3:** Vendor detail page (`/vendors/[slug]`) — hero, services,
-   portfolio grid, reviews section (empty), 404 for unverified.
-3. **Unit 1.4:** Admin shell + verification queue — role-gated `/admin/*`,
-   approve/reject/request-info on pending vendors (opens AD-005).
-4. **Unit 1.5:** Seed data expansion — 5+ rows per core table for
+1. **Unit 1.5:** Seed data expansion — 5+ rows per core table for
    Requirement 3; varied booking statuses for realistic dashboards.
 
 **Week 2 preview:** vendor onboarding (4-step form), booking flow
@@ -158,6 +174,13 @@ customer dashboard skeleton.
   EventIQ in hosted Clerk UI).
 - Clerk is on test keys — a production Clerk instance
   is required before real-user launch.
+  - **REQUIRED SETUP (any new Clerk instance):** The session-token template
+    (Dashboard → Sessions → Customize session token) must include
+    `{ "metadata": "{{user.public_metadata}}" }`. This config is NOT in the
+    repo — it lives only in the Clerk Dashboard. Without it,
+    `sessionClaims.metadata` is always undefined and all JWT-role-based
+    routing silently breaks (proxy onboarding gate, admin gate fast-path,
+    page.tsx Tier 1 — all fall through). Root cause of BUG-014.
 - Real domain (`eventiq.ng` or client choice) to be
   attached to Vercel when confirmed; current URL is
   `sphene-events.vercel.app` (cosmetic only).
@@ -167,6 +190,9 @@ customer dashboard skeleton.
 - Font preload console warnings: harmless, defer cleanup.
 - `lib/env.ts` startup env validation not yet created —
   add before Phase 1 ships.
+- Admin verification queue: age column wording (e.g. "2 days ago") is
+  clear but could be ambiguous for submissions near the 48 h SLA boundary.
+  Minor display polish, deferred.
 
 ## Architecture Decisions
 
@@ -186,6 +212,8 @@ customer dashboard skeleton.
 | 2026-05-27 | **AD-004: DB-first, Clerk-mirror atomicity for role writes** — When `setUserRole()` updates a user's role, it writes to two systems: our DB (`User.role`, the source of truth) and Clerk `publicMetadata.role` (the mirror for fast proxy checks). Order matters. Pattern: DB write first; if it succeeds, attempt Clerk write; if Clerk fails, log the error but DO NOT roll back the DB. The DB has the correct role; Clerk metadata is stale until a future re-sync or the next sign-in. The proxy will use DB role for authorization once role-gated routes land. The alternative (Clerk-first or transactional rollback) would either route based on stale metadata or require two-phase commit complexity unjustified at MVP scale. | Source-of-truth clarity beats two-phase commit complexity. Drift window is acceptable for non-financial state. |
 | 2026-05-27 | **AD-005: Defer route groups and role-gated proxy to Phase 1** — Unit 7 was originally planned as the final structural unit of Phase 0: create route groups `(public)`/`(customer)`/`(vendor)`/`(admin)` with role-gated logic in `proxy.ts`. Decision: defer. Building empty route group folders with no real content would be speculative scaffolding for dashboards not yet designed. The role-gating logic in `proxy.ts` will be added incrementally when Phase 1 features (vendor onboarding, customer dashboard) need it. Trade-off: `proxy.ts` will be edited multiple times during Phase 1 instead of once now. Acceptable because role-gating decisions are better made under real feature requirements than in the abstract. The `(public)`/`(customer)`/`(vendor)`/`(admin)` pattern documented in `architecture.md` remains the intended end state — we just build it incrementally rather than upfront. | Speculative scaffolding adds maintenance cost without value. Build when needed. |
 | 2026-05-28 | **AD-006: ISR on landing page (1h revalidate)** — The home page fetches vendor counts and featured vendors from the DB. `export const revalidate = 3600` enables ISR: served from cache, regenerated in the background on the first request after each 1-hour window. Trade-off: up to 1 hour of stale data after a vendor is approved. Acceptable for MVP because vendor approvals are manual and infrequent. Alternative (`force-dynamic`) would hit the DB on every page view — unnecessary load for a public marketing page. | Fresh-enough data without per-request DB load. |
+| 2026-06-03 | **AD-008: Two-layer admin gating (proxy + layout)** — Admin routes at `/admin(.*)` are protected by two independent checks. Layer 1: `proxy.ts` reads `sessionClaims.metadata.role` from the Clerk JWT at the edge and returns a bare 404 for any non-admin (not a redirect, not a 403 — hides admin URL existence per §12). Layer 2: `(admin)/layout.tsx` calls `getCurrentUser()` to re-check the DB `User.role === ADMIN` (invariant 10 — server-side re-check is mandatory). Admin role is only ever set manually in the Clerk dashboard, never programmatically, so the AD-004 staleness window does not apply; both checks are expected to agree. The two-layer pattern is defense in depth, not a staleness workaround. A forged or replayed session token that passes the proxy still fails the DB check in the layout. | Invariant 10 requires a DB re-check; proxy check alone is insufficient. Edge-native JWT check alone doesn't satisfy the source-of-truth requirement (invariant 8). |
+| 2026-06-03 | **AD-009: Onboarding-route gate in proxy.ts** — Returning authenticated users who visit `/onboarding/role` with a role already in their Clerk JWT are redirected via `NextResponse.redirect()` in `proxy.ts` before the page renders. This is the correct location for this redirect because the proxy issues a real HTTP 3xx response on every request type (full page load AND client-side RSC fetch), whereas `redirect()` called from inside a Next.js Server Component during an RSC fetch produces an RSC-embedded redirect (HTTP 200) that can fail to deliver cleanly on first post-auth load. Users with no JWT role (genuine first-time users or stale-Clerk returning users) are let through to `page.tsx`, which checks the DB via `findCurrentUser()` as a fallback (invariant 8). The proxy gate is a UX fast-path optimization; it does NOT replace the DB-based authority check in page.tsx. | In-page Server Component redirects for returning-user guard logic are unreliable on first post-auth RSC fetch. Proxy redirects are authoritative at the HTTP level and work unconditionally. Note: this gate only functions if the Clerk session-token template includes `"metadata": "{{user.public_metadata}}"` — without it, `sessionClaims.metadata` is always undefined and the gate silently no-ops for all users (BUG-014). |
 | 2026-06-02 | **AD-007: Server-Sent Events over WebSocket for chat** — Real-time chat uses one-way SSE (server → client) instead of WebSocket. Client sends messages via standard POST. Decision driven by: (1) simplicity in a 4-week academic timeline, (2) Next.js native support without separate server infrastructure, (3) sufficient for one-to-one booking-scoped chat. WebSocket considered and rejected for this scope. Documented in chapter-4-evidence.md as a legitimate alternative satisfying Requirement 6 (university requirements doc lists WebSocket/Socket.io/Laravel Reverb as examples, not a closed list). | One-way real-time is enough; cuts implementation complexity substantially. |
 
 ## Session Notes
@@ -229,5 +257,10 @@ customer dashboard skeleton.
   works against production Neon DB. Shared with client as an early
   preview with sample data.
 - 2026-06-02: Phase 1 opened under academic constraints. Project re-scoped from indefinite production marketplace to 4-week dissertation deliverable. Three new planning docs added: academic-context.md (constraints), phase-1-roadmap.md (week-by-week), chapter-4-evidence.md (requirement tracking). Live Vercel deployment maintained as continuous demo URL.
-- 2026-06-02: Phase 1 Unit 1.0 complete. Bug log extracted while session memory was freshest.
-- 2026-06-02: Phase 1 Unit 1.1 complete. Cloudinary free-tier account active; next.config.ts updated.
+- 2026-06-02: Phase 1 Units 1.0 and 1.1 complete. Bug log and Cloudinary done.
+- 2026-06-02: Phase 1 Unit 1.2 complete. /vendors browse page with filters, pagination, skeleton loading, empty state. First service-layer file established (src/services/vendor.ts). EmptyState shared component created. proxy.ts updated to cover /vendors(.*) as public routes (also covers Unit 1.3).
+- 2026-06-02: Phase 1 Unit 1.3 complete. /vendors/[slug] detail page. getVendorBySlug() added to vendor service (returns null for unverified/suspended → notFound()). VerifiedBadge component (Verified Business vs Verified Individual based on cacNumber). PortfolioGallery client lightbox — one Dialog per image, fully uncontrolled (BUG-003). Hero with cover photo, rating, verified badge. About section with bio, experience, city, Instagram link. Services section with price and stub "Book this service" CTA → /book/[serviceId]. Empty reviews section with placeholder. loading.tsx shape-matched skeleton. generateMetadata for dynamic OG title/description. Note: lucide-react version installed does not export Instagram — replaced with ExternalLink for the Instagram handle link. npm run build passes clean.
+- 2026-06-03: BUG-009 fixed. Root cause: ensureUser upsert used clerkId-only matching. When a Clerk user was deleted and re-created with the same email, the new clerkId caused a P2002 email unique constraint violation on create. Fixed by catching P2002 and reconciling: find existing row by email, update clerkId to new value, return row with role preserved. No schema change. Build passes clean. See docs/bug-log.md BUG-009.
+- 2026-06-03: BUG-012 fixed. Root cause of blank /onboarding/role on first post-auth load: redirect() called from a Server Component during a client-side RSC fetch is delivered as an RSC-embedded redirect (HTTP 200), not a real HTTP redirect. Browser router sometimes fails to follow it on first post-auth load. Fix: moved the "user already has a role, skip onboarding" redirect into proxy.ts (AD-009). NextResponse.redirect() in proxy always issues a real HTTP 3xx, unconditionally. Page.tsx Tier 1 (JWT) and Tier 2 (DB/findCurrentUser) retained as defense-in-depth for the stale-JWT case. BUG-012 documented. Proxy responsibilities extended — see AD-009.
+- 2026-06-03: Phase 1 Unit 1.4 complete. Admin shell + verification queue. Two-layer gating: proxy.ts reads Clerk publicMetadata.role at the edge (404 for non-admins), (admin)/layout.tsx re-checks DB role (defense in depth). Schema: VENDOR_INFO_REQUESTED added to AuditAction enum, migration applied (20260603080642_add_info_requested_audit), Prisma validate + generate done. Seed: 4th vendor (Bright Clicks Studio, PHOTOGRAPHY, PENDING) added to keep queue non-empty. Routes built: /admin (overview stats), /admin/verifications (queue with 48h SLA age coloring), /admin/verifications/[id] (full submission detail — business info, bank details, services, docs placeholder, portfolio). Server Actions: approveVendor/rejectVendor/requestInfoVendor — each has Zod validation, requireRole("ADMIN") re-check, atomic status+AuditLog transaction, visible email stub (console.log with TODO(Week3):Resend label). Action dialogs: uncontrolled Dialog (BUG-003), Textarea via useRef (no controlled state for open). Admin chrome uses --secondary (jade) accent, visually distinct from public site. Note: the seed admin user (user_seed_admin_001) has a fake Clerk ID. To access /admin in the app, the developer must set publicMetadata.role = "admin" on their real Clerk account via Clerk dashboard — the proxy checks JWT claims. npm run build passes clean.
+- 2026-06-04: TRUE resolution of the BUG-010/011/012 auth saga. After the BUG-012 proxy redirect was deployed it STILL failed — returning users landed on a blank /onboarding/role. Root cause was not code: the Clerk Dashboard session-token template was empty ({}), so publicMetadata.role was never embedded in the session JWT, making sessionClaims.metadata undefined for every user. Every JWT-role check — page.tsx Tier 1 and the BUG-012 proxy gate — fell through. Fixed by adding { "metadata": "{{user.public_metadata}}" } to the Clerk session-token template (Dashboard → Sessions → Customize session token). Verified clean on a fresh account: returning customer → homepage, no blank; new user → role page works; admin → /admin loads; signed-out and signed-in non-admin → both 404 on /admin. The BUG-009–012 code fixes were all necessary and correct but none could work until the JWT carried the role. See docs/bug-log.md BUG-014. Also: BUG-011 (Tier 2 getCurrentUser→ensureUser side-effect creating ambiguous CUSTOMER state; fixed with read-only findCurrentUser) and BUG-013 (seed: Bright Clicks Studio had no services, breaking approve-then-appear; added two active services) resolved in the same span.

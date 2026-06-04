@@ -1,4 +1,5 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 import type { UserRole } from "@prisma/client";
 import { db } from "@/lib/db";
 import { AuthError, DatabaseSyncError } from "@/lib/errors";
@@ -6,8 +7,16 @@ import { userSyncSchema } from "@/lib/validators/user";
 
 /**
  * Finds or creates the DB User row for the given Clerk identity.
- * Called on every authenticated request — upsert is a no-op after the first hit.
- * Throws DatabaseSyncError if the DB write fails.
+ *
+ * Normal path: upsert by clerkId. update:{} is intentionally empty — never
+ * clobbers role or other user-set fields on re-auth (invariant 8 / AD-004).
+ *
+ * Email-collision path: if a Clerk account was deleted and the same email
+ * re-used to create a new account, Clerk issues a new clerkId. The upsert
+ * finds no row by the new clerkId → tries CREATE → P2002 on email. We recover
+ * by updating the existing row's clerkId to the new one. Role and all other
+ * fields are preserved — Clerk is the identity authority for the clerkId;
+ * the DB is the source of truth for everything else (AD-004).
  */
 export async function ensureUser(input: {
   clerkId: string;
@@ -24,7 +33,7 @@ export async function ensureUser(input: {
   try {
     return await db.user.upsert({
       where: { clerkId: parsed.data.clerkId },
-      update: {},
+      update: {}, // Intentionally empty — do NOT reset role on re-auth.
       create: {
         clerkId: parsed.data.clerkId,
         email: parsed.data.email,
@@ -32,10 +41,37 @@ export async function ensureUser(input: {
         role: "CUSTOMER",
       },
     });
-  } catch (error) {
+  } catch (firstError) {
+    // Check for P2002 unique constraint violation on email.
+    // This happens when a Clerk user was deleted and re-created with the same
+    // email. The old DB row still has that email under the old (now invalid)
+    // clerkId. Transfer the clerkId to the new account; preserve all other
+    // fields including role (so a manually-set ADMIN row survives the transfer).
+    if (
+      firstError instanceof Prisma.PrismaClientKnownRequestError &&
+      firstError.code === "P2002"
+    ) {
+      console.warn(
+        `[ensureUser] Email collision for ${parsed.data.email} — transferring clerkId to new Clerk account. ` +
+          `Old Clerk account was likely deleted and email re-used.`,
+      );
+      try {
+        return await db.user.update({
+          where: { email: parsed.data.email },
+          data: { clerkId: parsed.data.clerkId },
+          // Role and all other fields are left unchanged.
+        });
+      } catch (reconcileError) {
+        throw new DatabaseSyncError(
+          `Failed to reconcile user identity for email=${parsed.data.email}`,
+          { cause: reconcileError },
+        );
+      }
+    }
+
     throw new DatabaseSyncError(
       `Failed to sync user clerkId=${input.clerkId}`,
-      { cause: error },
+      { cause: firstError },
     );
   }
 }
@@ -61,6 +97,23 @@ export async function getCurrentUser() {
     .join(" ");
 
   return ensureUser({ clerkId: userId, email, fullName });
+}
+
+/**
+ * Read-only lookup of the DB User row for the current Clerk session.
+ *
+ * Unlike getCurrentUser(), this does NOT call ensureUser() — it returns null
+ * for an authenticated Clerk user who has no DB row yet (i.e. a brand-new user
+ * who has not yet completed role selection). The DB row is only ever created
+ * inside setUserRole() → requireAuth() → ensureUser().
+ *
+ * Use this when "no DB row" must be distinguishable from "has a DB row"
+ * without triggering the creation side-effect.
+ */
+export async function findCurrentUser() {
+  const { userId } = await auth();
+  if (!userId) return null;
+  return db.user.findUnique({ where: { clerkId: userId } });
 }
 
 /**

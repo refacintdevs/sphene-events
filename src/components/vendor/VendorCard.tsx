@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { UtensilsCrossed, Sparkles, Camera } from "lucide-react";
+import { UtensilsCrossed, Sparkles, Camera, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNaira, truncate, getInitials } from "@/lib/format";
 
@@ -13,6 +13,8 @@ export interface VendorCardData {
   startingPriceKobo: number | null;
   primaryCategory: "CATERING" | "DECORATION" | "PHOTOGRAPHY" | null;
   coverImageUrl: string | null;
+  avgRating?: number | null;
+  reviewCount?: number;
 }
 
 const CATEGORY_ICONS = {
@@ -36,6 +38,8 @@ export function VendorCard({
   startingPriceKobo,
   primaryCategory,
   coverImageUrl,
+  avgRating = null,
+  reviewCount = 0,
 }: VendorCardData) {
   const isCloudinaryUrl =
     coverImageUrl?.startsWith("https://res.cloudinary.com/") ?? false;
@@ -55,9 +59,8 @@ export function VendorCard({
       )}
     >
       {/* Image / placeholder */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+      <div className="relative aspect-4/5 overflow-hidden bg-muted">
         {isCloudinaryUrl ? (
-          /* TODO Phase 1: add res.cloudinary.com to next.config.ts images.remotePatterns before real uploads land */
           <Image
             src={coverImageUrl!}
             alt={`${businessName} portfolio`}
@@ -66,7 +69,7 @@ export function VendorCard({
             sizes="(max-width: 768px) 100vw, 50vw"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+          <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/10 to-secondary/10">
             <CategoryIcon
               className="h-16 w-16 text-foreground opacity-20"
               aria-hidden="true"
@@ -74,7 +77,7 @@ export function VendorCard({
           </div>
         )}
 
-        {/* Initials pill — always shown */}
+        {/* Initials pill */}
         <div className="absolute left-3 top-3 rounded-full bg-card/80 px-2.5 py-0.5 text-xs font-semibold text-foreground backdrop-blur-sm">
           {initials}
         </div>
@@ -93,13 +96,24 @@ export function VendorCard({
           {businessName}
         </h3>
 
-        <div className="mt-1 flex items-center justify-between">
+        <div className="mt-1 flex items-center justify-between gap-2">
           {startingPriceKobo != null ? (
             <p className="text-sm font-semibold text-primary">
               From {formatNaira(startingPriceKobo)}
             </p>
           ) : (
             <p className="text-sm text-muted-foreground">Price on request</p>
+          )}
+
+          {reviewCount === 0 ? (
+            <span className="shrink-0 rounded-md bg-secondary/15 px-1.5 py-0.5 text-xs font-medium text-secondary">
+              New
+            </span>
+          ) : (
+            <span className="flex shrink-0 items-center gap-0.5 text-xs text-muted-foreground">
+              <Star className="h-3 w-3 fill-warning text-warning" />
+              {avgRating?.toFixed(1)} ({reviewCount})
+            </span>
           )}
         </div>
 

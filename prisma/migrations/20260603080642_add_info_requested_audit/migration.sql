@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AuditAction" ADD VALUE 'VENDOR_INFO_REQUESTED';

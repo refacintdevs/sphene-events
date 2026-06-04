@@ -86,6 +86,7 @@ enum DisputeStatus {
 enum AuditAction {
   VENDOR_VERIFIED
   VENDOR_REJECTED
+  VENDOR_INFO_REQUESTED  // Added Unit 1.4 — admin requested more info
   BOOKING_PAID
   PAYMENT_RELEASED
   PAYMENT_REFUNDED

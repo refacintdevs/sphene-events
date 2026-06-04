@@ -22,6 +22,7 @@ const IDS = {
   vendor1:   "user_seed_vendor_001",   // Folake's Kitchen (CATERING)
   vendor2:   "user_seed_vendor_002",   // Tunde Lens Studio (PHOTOGRAPHY)
   vendor3:   "user_seed_vendor_003",   // House of Lush (DECORATION)
+  vendor4:   "user_seed_vendor_004",   // Bright Clicks Studio (PHOTOGRAPHY, PENDING)
   customer1: "user_seed_customer_001", // Chinonso Eze
   customer2: "user_seed_customer_002", // Fatima Bello
   // Legacy IDs from a prior seed run — include so cleanup handles them too
@@ -39,6 +40,7 @@ async function cleanup() {
 
   // Deleting a User cascades: VendorProfile → Services, PortfolioItems, VerificationDocuments.
   const allSeedClerkIds = Object.values(IDS);
+
   await prisma.user.deleteMany({ where: { clerkId: { in: allSeedClerkIds } } });
 }
 
@@ -373,6 +375,68 @@ async function main() {
     ],
   });
 
+  // ── Vendor 4 — Bright Clicks Studio (PHOTOGRAPHY, PENDING) ──────────────
+  // Used to populate the admin verification queue in Unit 1.4 and beyond.
+  const v4User = await prisma.user.create({
+    data: {
+      clerkId:     IDS.vendor4,
+      email:       "emeka@brightclicks.test",
+      fullName:    "Emeka Okafor",
+      phoneNumber: "+2348077654321",
+      role:        UserRole.VENDOR,
+    },
+  });
+
+  const v4Profile = await prisma.vendorProfile.create({
+    data: {
+      userId:             v4User.id,
+      businessName:       "Bright Clicks Studio",
+      slug:               "bright-clicks-studio",
+      bio:                "Event and portrait photography studio based in Yaba, Lagos. Specialising in weddings, engagement shoots, and corporate headshots. Modern editing style with a focus on natural light and candid moments.",
+      cacNumber:          null,
+      whatsappNumber:     "+2348077654321",
+      instagramHandle:    "brightclicks_ng",
+      city:               "Yaba",
+      state:              NigerianState.LAGOS,
+      address:            "5 Herbert Macaulay Way, Yaba, Lagos",
+      yearsOfExperience:  3,
+      verificationStatus: VerificationStatus.PENDING,
+      bankName:           "Access Bank",
+      bankAccountNumber:  "0987654321",
+      bankAccountName:    "EMEKA OKAFOR",
+    },
+  });
+
+  // Services for Bright Clicks Studio — required so that approving the vendor
+  // in the admin queue causes it to appear on /vendors (which filters by ≥1
+  // active service). Priced below the established Tunde Lens Studio to reflect
+  // fewer years of experience (3 vs 6) and no CAC registration.
+  await prisma.service.create({
+    data: {
+      id:            "seed_service_007",
+      vendorId:      v4Profile.id,
+      category:      VendorCategory.PHOTOGRAPHY,
+      title:         "Wedding Photography Package",
+      description:   "Full wedding day photography for up to 8 hours. Bridal prep, ceremony, and reception coverage. 300+ professionally edited images delivered via private online gallery within 2 weeks. Solo photographer, modern natural-light editing style.",
+      priceKobo:     20_000_000,
+      durationHours: 8,
+      isActive:      true,
+    },
+  });
+
+  await prisma.service.create({
+    data: {
+      id:            "seed_service_008",
+      vendorId:      v4Profile.id,
+      category:      VendorCategory.PHOTOGRAPHY,
+      title:         "Engagement & Portrait Session",
+      description:   "Two-hour engagement shoot or portrait session at a location of your choice in Lagos. 60+ edited images delivered within 5 business days. Print-ready high-resolution files included.",
+      priceKobo:     7_000_000,
+      durationHours: 2,
+      isActive:      true,
+    },
+  });
+
   // ── Booking SE-2026-0001 ──────────────────────────────────────────────────
   const booking = await prisma.booking.create({
     data: {
@@ -432,9 +496,9 @@ async function main() {
   const bookingRow = await prisma.booking.findFirst();
 
   console.log("\n── Seed complete ──────────────────────────────────────");
-  console.log(`  Users:          ${users} (1 admin, 3 vendors, 2 customers)`);
-  console.log(`  VendorProfiles: ${vendors} (all APPROVED)`);
-  console.log(`  Services:       ${services} (2 catering, 2 photography, 2 decoration)`);
+  console.log(`  Users:          ${users} (1 admin, 4 vendors, 2 customers)`);
+  console.log(`  VendorProfiles: ${vendors} (3 APPROVED, 1 PENDING — Bright Clicks Studio)`);
+  console.log(`  Services:       ${services} (2 catering, 4 photography, 2 decoration — Bright Clicks adds 2)`);
   console.log(`  PortfolioItems: ${portfolio} (4 per vendor)`);
   console.log(`  Bookings:       ${bookings} (${bookingRow?.bookingCode}, status: ${bookingRow?.status}, whatsappRevealed: ${bookingRow?.whatsappRevealed})`);
   console.log(`  Payments:       ${payments} (status: ${paymentRow?.status}, amountKobo: ${paymentRow?.amountKobo})`);

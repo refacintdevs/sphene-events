@@ -97,9 +97,17 @@
    booking amounts are computed server-side from
    the referenced `Service.price`. The client never
    posts a price.
-3. **Verification state is admin-only.** No route
-   handler outside `app/api/admin/` may mutate
-   `VendorProfile.verificationStatus`.
+3. **Verification state is admin-only.** No route handler
+   outside the admin surface may mutate
+   `VendorProfile.verificationStatus`. In Phase 1 this is
+   implemented via Server Actions in
+   `app/(admin)/admin/verifications/actions.ts` rather than
+   `app/api/admin/` route handlers. Both mechanisms enforce
+   the same constraint: `requireRole("ADMIN")` is called
+   before every write, and the status update + AuditLog
+   insert are a single Prisma transaction. The spec intent
+   is satisfied; the `app/api/admin/` path is the Phase 2
+   form when a REST API is needed.
 4. **Escrow is single-source.** Booking payment state
    transitions only through `services/payment.ts`.
    No other module reads or writes `Payment.status`

@@ -150,6 +150,36 @@ spec — not against intuition.
   events per day. Phase 2 adds explicit availability.)
 - Average rating computed from public reviews.
 
+### Phase 1 Implementation Notes (Unit 1.2)
+
+The following deviations from the spec above are deliberate for Phase 1.
+Document these in Chapter 4 under "Assumptions and Constraints".
+
+- **Price filter**: implemented as four radio-button BANDS
+  (any / under-₦50k / ₦50k-₦200k / over-₦200k), not a slider.
+  Bands filter on the vendor's starting price (min active service price).
+  Kobo thresholds: under-₦50k = <5,000,000; ₦50k-₦200k = 5,000,000–
+  19,999,999; over-₦200k = ≥20,000,000. Price-band filtering happens
+  app-side (fast at seed scale; Phase 2 pushes to DB/search index).
+- **"Verified only" toggle**: removed. All visible vendors are already
+  verified by invariant. A static "All vendors verified" trust chip is
+  shown in the results header instead.
+- **Date availability**: implemented as a native date input.
+  Excludes vendors with a Booking in PAID or ACCEPTED status whose
+  eventDate falls on that calendar day (UTC). This is an approximation
+  — vendors may handle multiple events per day. Phase 2 adds explicit
+  availability calendars.
+- **Sorting/aggregates**: done app-side after DB fetch. Correct at seed
+  scale (~10–15 vendors). Phase 2 pushes to DB or a search index.
+- **Zod schema**: uses per-field `.catch(default)` instead of
+  reject-with-400 (per architecture.md invariant 5). This is a deliberate
+  deviation documented in the schema file — invariant 5 applies to
+  mutating handlers, not public browse pages that must degrade gracefully
+  on malformed URLs.
+- **Category multi-select**: implemented as checkboxes. Each checked box
+  appends `?category=X` to the URL (standard HTML multi-value GET form).
+  The Zod schema handles both string[] and comma-separated string.
+
 ### Rules
 
 - Unverified vendors never appear in search, ever.
@@ -178,6 +208,25 @@ spec — not against intuition.
    - Reviews: paginated list of public reviews with
      ratings.
 3. "Book Now" on a service starts the booking flow.
+
+### Phase 1 Implementation Notes (Unit 1.3)
+
+The following deviations from the spec above are deliberate for Phase 1.
+
+- **WhatsApp**: completely hidden this unit. No stub, no placeholder.
+  The field is fetched server-side but never returned from `getVendorBySlug()`.
+  Full reveal logic (post-PAID check) is wired in the booking flow unit.
+- **"Book Now" CTA**: stub only — renders a `<Link href="/book/[serviceId]">` button.
+  The `/book/*` routes do not exist yet. Link is functional but will 404
+  until the booking flow unit ships.
+- **Reviews**: fetched and rendered, but no pagination and no submission form
+  this unit. The empty state is shown for all seed vendors (0 public reviews).
+- **Portfolio lightbox**: one `Dialog` per image (fully uncontrolled, BUG-003).
+  First image spans `col-span-2 aspect-video`; remaining images are `aspect-square`.
+- **Instagram icon**: lucide-react version installed does not export `Instagram`.
+  Replaced with `ExternalLink` icon for the Instagram handle link.
+- **generateMetadata**: implemented using the same `getVendorBySlug()` call.
+  Next.js deduplicates the two fetches via its per-request cache.
 
 ### Rules
 
