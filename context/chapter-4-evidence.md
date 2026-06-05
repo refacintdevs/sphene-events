@@ -98,20 +98,24 @@ and defends the normalization choice.
 
 | Table | Current rows | Target | Unit |
 | --- | --- | --- | --- |
-| User | 6 | ≥5 ✅ | — |
-| VendorProfile | 3 | ≥5 | 1.5 |
-| Service | 6 | ≥10 | 1.5 |
-| PortfolioItem | 12 | ≥5 ✅ | — |
-| Booking | 1 | ≥5 (varied statuses) | 1.5 |
-| Payment | 1 | ≥5 | 1.5 |
-| Review | 0 | ≥5 | 1.5 + 3.3 |
+| User | 10 | ≥5 ✅ | — |
+| VendorProfile | 5 (4 APPROVED, 1 PENDING) | ≥5 ✅ | 1.5 ✅ |
+| Service | 10 | ≥10 ✅ | 1.5 ✅ |
+| PortfolioItem | 15 | ≥5 ✅ | — |
+| Booking | 11 (7 distinct statuses) | ≥5 ✅ | 1.5 ✅ |
+| Payment | 8 (1 HELD · 5 RELEASED · 1 HELD-frozen · 1 REFUNDED) | ≥5 ✅ | 1.5 ✅ |
+| Review | 5 (public; Folake×2, Tunde×2, House of Lush×1) | ≥5 ✅ | 1.5 ✅ |
+| AuditLog | 19 (4 VENDOR_VERIFIED · 8 BOOKING_PAID · 5 PAYMENT_RELEASED · 1 PAYMENT_REFUNDED · 1 DISPUTE_OPENED) | ≥5 ✅ | 1.5 ✅ |
+| WebhookEvent | 7 (seed placeholders; real events in Unit 2.3) | ≥5 ✅ | 1.5 ✅ |
 | Conversation | 0 | ≥5 | 3.1 |
 | Message | 0 | ≥10 | 3.1 |
-| AuditLog | 0 | ≥5 | 1.5 + 3.4 |
 
-Seed data expansion happens in Unit 1.5. The seeded
-state must support a clean demo regardless of who
-signs up.
+Unit 1.5 complete (2026-06-05). All core tables meet the ≥5 row requirement.
+WebhookEvent rows are seed placeholders labeled as such in code; real events
+populate in Unit 2.3 when the Paystack webhook handler is implemented.
+Note: `Dispute` model rows for SE-2026-0009 (DISPUTED) and SE-2026-0010 (REFUNDED)
+are intentionally absent — Dispute creation is part of the booking flow (Unit 2.2)
+and admin dispute queue (Unit 3.x). This is documented in progress-tracker.md.
 
 ## Requirement 4 — Security implementation
 
