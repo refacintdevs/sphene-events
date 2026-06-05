@@ -94,6 +94,15 @@ export default async function VerificationDetailPage({ params }: PageProps) {
         <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Business name" value={vendor.businessName} />
           <Field label="City" value={vendor.city} />
+          <Field
+            label="Primary category"
+            value={
+              vendor.primaryCategory
+                ? vendor.primaryCategory.charAt(0) +
+                  vendor.primaryCategory.slice(1).toLowerCase()
+                : "Not set"
+            }
+          />
           <Field label="Address" value={vendor.address} />
           <Field label="Years of experience" value={`${vendor.yearsOfExperience} years`} />
           <Field label="CAC number" value={vendor.cacNumber ?? "Not provided"} />

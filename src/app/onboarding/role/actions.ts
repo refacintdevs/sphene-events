@@ -62,6 +62,8 @@ export async function setUserRole(
     // The proxy will use DB role for authorization once role-gated routes land (Unit 7).
   }
 
-  // TODO: Phase 1 — redirect VENDOR to /vendor/onboarding instead of /
+  if (parsed.data === "VENDOR") {
+    redirect("/vendor/onboarding");
+  }
   redirect("/");
 }

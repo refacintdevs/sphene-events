@@ -66,7 +66,8 @@ export default clerkMiddleware(async (auth, request) => {
     // JWT carries a role → user has already completed onboarding. Redirect now,
     // before the page renders, via a real HTTP redirect (not an RSC payload redirect).
     if (role === "admin") return NextResponse.redirect(new URL("/admin", request.url));
-    if (role) return NextResponse.redirect(new URL("/", request.url)); // "customer" or "vendor"
+    if (role === "vendor") return NextResponse.redirect(new URL("/vendor/onboarding", request.url));
+    if (role) return NextResponse.redirect(new URL("/", request.url)); // "customer"
 
     // No role in JWT: either a genuine first-time user or a returning user whose
     // Clerk publicMetadata write failed (AD-004 known gap — JWT is stale).

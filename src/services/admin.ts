@@ -22,6 +22,7 @@ export interface VendorSubmission {
   city: string;
   address: string;
   yearsOfExperience: number;
+  primaryCategory: string | null;
   verificationStatus: string;
   verificationNotes: string | null;
   bankName: string | null;
@@ -46,6 +47,7 @@ export async function getPendingVendors(): Promise<PendingVendorItem[]> {
       businessName: true,
       slug: true,
       city: true,
+      primaryCategory: true,
       createdAt: true,
       services: {
         where: { isActive: true },
@@ -60,7 +62,8 @@ export async function getPendingVendors(): Promise<PendingVendorItem[]> {
     businessName: v.businessName,
     slug: v.slug,
     city: v.city,
-    primaryCategory: v.services[0]?.category ?? null,
+    // DB field takes priority; fall back to first active service category only if null.
+    primaryCategory: v.primaryCategory ?? v.services[0]?.category ?? null,
     createdAt: v.createdAt,
   }));
 }
@@ -113,6 +116,8 @@ export async function getVendorSubmission(
     city: vendor.city,
     address: vendor.address,
     yearsOfExperience: vendor.yearsOfExperience,
+    // DB field takes priority; fall back to first service category only if null.
+    primaryCategory: vendor.primaryCategory ?? vendor.services[0]?.category ?? null,
     verificationStatus: vendor.verificationStatus,
     verificationNotes: vendor.verificationNotes,
     bankName: vendor.bankName,

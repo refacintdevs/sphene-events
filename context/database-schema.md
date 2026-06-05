@@ -149,6 +149,7 @@ model VendorProfile {
   state                NigerianState @default(LAGOS)
   address              String
   yearsOfExperience    Int      @default(0)
+  primaryCategory      VendorCategory?    // Set in onboarding Step 1; nullable for pre-onboarding vendors; admin queue reads it for the category column
   verificationStatus   VerificationStatus @default(UNSUBMITTED)
   verifiedAt           DateTime?
   verificationNotes    String?  @db.Text  // Admin notes on review
