@@ -1304,7 +1304,7 @@ async function main() {
     ]);
 
   console.log("\n── Seed complete ──────────────────────────────────────");
-  console.log(`  Users:          ${users}  (1 admin, 5 vendors, 4 customers)`);
+  console.log(`  Users:          10 created by seed (1 admin, 5 vendors, 4 customers) — ${users - 10} pre-existing app account(s) also present`);
   console.log(`  VendorProfiles: ${vendors}  (4 APPROVED, 1 PENDING — Bright Clicks Studio)`);
   console.log(`  Services:       ${services} (4 catering, 4 photography, 2 decoration)`);
   console.log(`  PortfolioItems: ${portfolio} (3–4 per vendor)`);
