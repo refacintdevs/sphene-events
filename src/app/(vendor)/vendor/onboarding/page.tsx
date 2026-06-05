@@ -1,23 +1,58 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { findCurrentUser } from "@/lib/auth";
+import { getVendorProfileByUserId } from "@/services/vendor-onboarding";
+import { OnboardingForm } from "./_components/OnboardingForm";
+import { UnderReview } from "./_components/UnderReview";
 
 export const metadata: Metadata = {
   title: "Vendor Onboarding — EventIQ",
 };
 
-export default function VendorOnboardingPage() {
+export default async function VendorOnboardingPage() {
+  // findCurrentUser() — read-only, no ensureUser() side effect (AD-010).
+  // Layout already verified role = VENDOR, but user can be null if auth
+  // state changed between layout render and this render.
+  const user = await findCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const profile = await getVendorProfileByUserId(user.id);
+
+  // No profile yet, or vendor started but never submitted — show fresh form.
+  if (!profile || profile.verificationStatus === "UNSUBMITTED") {
+    return <OnboardingForm />;
+  }
+
+  // Submission received; waiting for admin decision.
+  if (profile.verificationStatus === "PENDING") {
+    return <UnderReview />;
+  }
+
+  // Approved — send to homepage until vendor dashboard is built.
+  // TODO(Unit 2.4): replace redirect('/') with redirect('/vendor/dashboard')
+  if (profile.verificationStatus === "APPROVED") {
+    redirect("/");
+  }
+
+  // REJECTED or INFO_REQUESTED — show the form pre-filled with profile data.
+  // File uploads (gov ID, CAC cert, portfolio) cannot be pre-filled here;
+  // the vendor must re-upload them. This is noted in vendor-onboarding.ts.
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md space-y-4 text-center">
-        <p className="text-xs font-medium uppercase tracking-widest text-primary">
-          Vendor Setup
-        </p>
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
-          Vendor onboarding
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Coming in Slice B — the multi-step onboarding form will be built here.
-        </p>
-      </div>
-    </div>
+    <OnboardingForm
+      prefill={{
+        businessName:      profile.businessName,
+        bio:               profile.bio,
+        yearsOfExperience: String(profile.yearsOfExperience),
+        primaryCategory:   profile.primaryCategory ?? "",
+        address:           profile.address,
+        whatsappNumber:    profile.whatsappNumber,
+        instagramHandle:   profile.instagramHandle ?? "",
+        cacNumber:         profile.cacNumber ?? "",
+        bankName:          profile.bankName ?? "",
+        bankAccountNumber: profile.bankAccountNumber ?? "",
+        bankAccountName:   profile.bankAccountName ?? "",
+      }}
+      adminNote={profile.verificationNotes}
+    />
   );
 }
