@@ -10,7 +10,7 @@ project is and how it got there.
 
 ## Current Goal
 
-- Phase 1 Week 2 — vendor onboarding (4-step form, `/vendor/onboarding`) next.
+- Phase 1 Week 2 — Unit 2.2: customer booking flow (`/book/[serviceId]`, feature-specs §6).
 
 ## Completed
 
@@ -134,19 +134,35 @@ project is and how it got there.
   in visual review and fixed. Components in `src/components/landing/`,
   `src/components/nav/`, `src/components/vendor/`. `npm run build` clean.
 
+- **Phase 1 Unit 2.1: Vendor onboarding — COMPLETE (Slice A + Slice B + client-side fixes).**
+  4-step form at `/vendor/onboarding`. Step 1: business basics (name, bio, years, primaryCategory).
+  Step 2: location + contact (address, WhatsApp, Instagram). Step 3: verification docs — Cloudinary
+  unsigned uploads for government ID (required), CAC certificate (optional), portfolio images (3–5 required);
+  upload-in-flight guard blocks step advancement. Step 4: bank details (static list per AD-011).
+  Submit: `submitOnboarding` Server Action validates with Zod, derives vendorId from auth (not client),
+  writes VendorProfile + VerificationDocument + PortfolioItem rows in a single transaction, sets
+  `verificationStatus = PENDING`, redirects to onboarding page (status router shows Under Review state).
+  Status-based router: UNSUBMITTED/null → fresh form, PENDING → Under Review, APPROVED → redirect /,
+  REJECTED/INFO_REQUESTED → pre-filled form + admin note banner. DB-role vendor route gate (AD-010).
+  PrimaryCategory schema field added (migration `20260605194908_add_vendor_primary_category`, AD-011).
+  Static Nigerian bank list (`nigerian-banks.ts`); Paystack /bank/resolve deferred to Unit 2.3.
+  Two client-side bugs fixed during browser testing: BUG-015 (null file ref propagation — upload guard)
+  and BUG-016 (step 4 data never lifted — handoff signature fix). Both invisible to `npm run build`.
+  Full end-to-end verified: vendor onboarded → admin approved → appeared on /vendors with uploaded
+  portfolio images and Verified Individual badge. `npm run build` passes (zero errors, zero warnings).
+
 ## In Progress
 
-- None. Unit 2.1 complete (Slice A + B).
+- None.
 
 ## Next Up
 
 Phase 1 Week 2 (continuing):
 
-1. **Unit 2.1:** Vendor onboarding (4-step form, `/vendor/onboarding`).
-2. **Unit 2.2:** Booking flow (4-screen: date select → review → pay → confirmed).
-3. **Unit 2.3:** Paystack sandbox integration + webhook handler at `/api/webhooks/paystack`.
-4. **Unit 2.4:** Vendor bookings dashboard.
-5. **Unit 2.5:** Customer dashboard skeleton.
+1. **Unit 2.2:** Booking flow (4-screen: date select → review → pay → confirmed) — feature-specs §6.
+2. **Unit 2.3:** Paystack sandbox integration + webhook handler at `/api/webhooks/paystack`.
+3. **Unit 2.4:** Vendor bookings dashboard.
+4. **Unit 2.5:** Customer dashboard skeleton.
 
 ## Open Questions
 
@@ -193,6 +209,14 @@ Phase 1 Week 2 (continuing):
 - Admin verification queue: age column wording (e.g. "2 days ago") is
   clear but could be ambiguous for submissions near the 48 h SLA boundary.
   Minor display polish, deferred.
+- **Step3VerificationDocs Cloudinary preset fallback:** the component uses
+  `process.env.NEXT_PUBLIC_CLOUDINARY_VERIFICATION_PRESET ?? "eventiq_unsigned"`
+  as a fallback when the env var is undefined. `"eventiq_unsigned"` is the
+  portfolio preset — if `NEXT_PUBLIC_CLOUDINARY_VERIFICATION_PRESET` is absent
+  in any environment, verification docs would be silently routed to the public
+  portfolio upload folder. Currently working (var is set in `.env.local` and
+  Vercel). Verify the var is present in all environments (preview, production)
+  before demo or launch.
 
 ## Architecture Decisions
 
@@ -269,3 +293,4 @@ Phase 1 Week 2 (continuing):
 - 2026-06-05: Phase 1 Unit 2.1 Slice A complete. Schema: added `primaryCategory VendorCategory?` to VendorProfile; migration `20260605194908_add_vendor_primary_category` applied to Neon. Seed: all 5 vendor profiles now have primaryCategory set. Admin queue: getPendingVendors() and getVendorSubmission() now read primaryCategory from DB first, fall back to services; detail page shows Category field in Business Information. setUserRole(): VENDOR branch now redirects to /vendor/onboarding (was /). proxy.ts: returning vendor with JWT role redirects to /vendor/onboarding instead of /. New route: (vendor)/layout.tsx gates on findCurrentUser() DB check — redirect('/') for non-VENDOR; (vendor)/vendor/onboarding/page.tsx is a themed stub. npm run build passes (9 routes). Prisma validate passes. Unit 2.1 NOT complete — Slice B (4-step form UI) is next. See AD-010.
 - 2026-06-05: Phase 1 Unit 1.5 complete. Seed data expanded in 3 PRs (PART 1: vendor + bookings; PART 2: payments + reviews; PART 3: audit logs + webhooks). Final counts after re-seed: User 10, VendorProfile 5 (4 APPROVED + 1 PENDING), Service 10, PortfolioItem 15, Booking 11 (7 distinct statuses), Payment 8, Review 5, AuditLog 19, WebhookEvent 7. Requirement 3 fully satisfied. cleanup() extended to delete AuditLog and WebhookEvent rows before each run (no cascade from users/bookings). AuditAction imported. npm run build passes. Re-seed resets the admin role — developer must re-set publicMetadata.role = "admin" in Clerk dashboard after each seed run.
 - 2026-06-04: TRUE resolution of the BUG-010/011/012 auth saga. After the BUG-012 proxy redirect was deployed it STILL failed — returning users landed on a blank /onboarding/role. Root cause was not code: the Clerk Dashboard session-token template was empty ({}), so publicMetadata.role was never embedded in the session JWT, making sessionClaims.metadata undefined for every user. Every JWT-role check — page.tsx Tier 1 and the BUG-012 proxy gate — fell through. Fixed by adding { "metadata": "{{user.public_metadata}}" } to the Clerk session-token template (Dashboard → Sessions → Customize session token). Verified clean on a fresh account: returning customer → homepage, no blank; new user → role page works; admin → /admin loads; signed-out and signed-in non-admin → both 404 on /admin. The BUG-009–012 code fixes were all necessary and correct but none could work until the JWT carried the role. See docs/bug-log.md BUG-014. Also: BUG-011 (Tier 2 getCurrentUser→ensureUser side-effect creating ambiguous CUSTOMER state; fixed with read-only findCurrentUser) and BUG-013 (seed: Bright Clicks Studio had no services, breaking approve-then-appear; added two active services) resolved in the same span.
+- 2026-06-06: Phase 1 Unit 2.1 complete (Slice A + Slice B + client-side fixes). Two bugs found and fixed during browser testing. BUG-015: "Continue" on step 3 could be clicked while a Cloudinary upload was still in flight, causing the parent to snapshot a null file reference; the submit guard hit this null and returned silently with no feedback. Fixed by adding an anyUploading gate that disables "Continue" and "Back" while any upload is in flight, and by converting the silent guard into a toast + step-3 redirect. BUG-016: step 4 (bank details) used an `onSubmit: () => void` handoff — it validated its internal state but never passed it to the parent; the parent submitted the prefill empty strings instead of the user's typed values. Fixed by aligning step 4's handoff with the `onNext(data)` pattern used by steps 1–3. Both bugs produced zero TypeScript or build errors — they were invisible to `npm run build` and surfaced only in the browser. Reinforces the project rule: browser testing is mandatory for UI units; a clean build is necessary but not sufficient. Full end-to-end flow verified: vendor filled all 4 steps, uploaded gov ID + 3 portfolio images, submitted → verificationStatus = PENDING; admin approved → vendor appeared on /vendors with Verified Individual badge and correct portfolio images. Ready for Unit 2.2 (customer booking flow).
