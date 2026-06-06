@@ -15,6 +15,8 @@ interface FileUploadProps {
   preset: string;
   value: UploadedFile | null;
   onChange: (file: UploadedFile | null) => void;
+  /** Called whenever an upload starts (true) or finishes/fails (false). */
+  onUploadingChange?: (uploading: boolean) => void;
   error?: string;
   hint?: string;
 }
@@ -26,6 +28,7 @@ export function FileUpload({
   preset,
   value,
   onChange,
+  onUploadingChange,
   error,
   hint,
 }: FileUploadProps) {
@@ -45,6 +48,7 @@ export function FileUpload({
     }
     setUploadError(null);
     setUploading(true);
+    onUploadingChange?.(true);
     setProgress(0);
     try {
       const result = await uploadToCloudinary(file, {
@@ -58,6 +62,7 @@ export function FileUpload({
       );
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
@@ -141,6 +146,8 @@ interface MultiFileUploadProps {
   preset: string;
   value: UploadedFile[];
   onChange: (files: UploadedFile[]) => void;
+  /** Called whenever an upload starts (true) or finishes/fails (false). */
+  onUploadingChange?: (uploading: boolean) => void;
   error?: string;
 }
 
@@ -152,6 +159,7 @@ export function MultiFileUpload({
   preset,
   value,
   onChange,
+  onUploadingChange,
   error,
 }: MultiFileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -172,6 +180,7 @@ export function MultiFileUpload({
     }
     setUploadError(null);
     setUploading(true);
+    onUploadingChange?.(true);
     setProgress(0);
     try {
       const result = await uploadToCloudinary(file, { preset, onProgress: setProgress });
@@ -182,6 +191,7 @@ export function MultiFileUpload({
       );
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   }

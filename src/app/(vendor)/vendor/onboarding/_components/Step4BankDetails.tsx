@@ -23,16 +23,17 @@ export interface Step4Values {
 
 interface Props {
   defaultValues: Step4Values;
+  serverErrors?: Partial<Record<string, string>>;
   onBack: () => void;
-  onSubmit: () => void;
+  onSubmit: (data: Step4Values) => void;
   isPending: boolean;
 }
 
 type Errors = Partial<Record<keyof Step4Values, string>>;
 
-export function Step4BankDetails({ defaultValues, onBack, onSubmit, isPending }: Props) {
+export function Step4BankDetails({ defaultValues, serverErrors, onBack, onSubmit, isPending }: Props) {
   const [v, setV] = useState<Step4Values>(defaultValues);
-  const [errors, setErrors] = useState<Errors>({});
+  const [errors, setErrors] = useState<Errors>((serverErrors ?? {}) as Errors);
 
   function set<K extends keyof Step4Values>(key: K, value: Step4Values[K]) {
     setV((prev) => ({ ...prev, [key]: value }));
@@ -51,7 +52,7 @@ export function Step4BankDetails({ defaultValues, onBack, onSubmit, isPending }:
       return;
     }
     setErrors({});
-    onSubmit();
+    onSubmit(v);
   }
 
   return (

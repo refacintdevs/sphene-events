@@ -21,6 +21,8 @@ export interface Step3Values {
 
 interface Props {
   defaultValues: Step3Values;
+  /** Server-side validation errors to show on mount (e.g. after a failed submit). */
+  serverErrors?: Partial<Record<string, string>>;
   onBack: () => void;
   onNext: (data: Step3Values) => void;
 }
@@ -32,9 +34,15 @@ type Errors = Partial<{
   portfolioItems: string;
 }>;
 
-export function Step3VerificationDocs({ defaultValues, onBack, onNext }: Props) {
+export function Step3VerificationDocs({ defaultValues, serverErrors, onBack, onNext }: Props) {
   const [v, setV] = useState<Step3Values>(defaultValues);
-  const [errors, setErrors] = useState<Errors>({});
+  const [errors, setErrors] = useState<Errors>((serverErrors ?? {}) as Errors);
+
+  // Track whether any individual upload widget is currently in flight.
+  const [govIdUploading, setGovIdUploading] = useState(false);
+  const [cacUploading, setCacUploading] = useState(false);
+  const [portfolioUploading, setPortfolioUploading] = useState(false);
+  const anyUploading = govIdUploading || cacUploading || portfolioUploading;
 
   function handleNext() {
     const result = step3Schema.safeParse({
@@ -113,6 +121,7 @@ export function Step3VerificationDocs({ defaultValues, onBack, onNext }: Props) 
             preset={VERIFICATION_PRESET}
             value={v.cacCertificate}
             onChange={(file) => setV((prev) => ({ ...prev, cacCertificate: file }))}
+            onUploadingChange={setCacUploading}
             error={errors.cacCertificate}
             hint={
               cacFilled
@@ -133,6 +142,7 @@ export function Step3VerificationDocs({ defaultValues, onBack, onNext }: Props) 
             setV((prev) => ({ ...prev, governmentId: file }));
             setErrors((err) => ({ ...err, governmentId: undefined }));
           }}
+          onUploadingChange={setGovIdUploading}
           error={errors.governmentId}
           hint="National ID, voter's card, driver's licence, or international passport."
         />
@@ -149,6 +159,7 @@ export function Step3VerificationDocs({ defaultValues, onBack, onNext }: Props) 
             setV((prev) => ({ ...prev, portfolioItems: files }));
             setErrors((err) => ({ ...err, portfolioItems: undefined }));
           }}
+          onUploadingChange={setPortfolioUploading}
           error={errors.portfolioItems}
         />
         <p className="text-xs text-muted-foreground -mt-2">
@@ -156,13 +167,20 @@ export function Step3VerificationDocs({ defaultValues, onBack, onNext }: Props) 
         </p>
       </div>
 
-      <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>
+      <div className="flex items-center justify-between gap-4">
+        <Button type="button" variant="outline" onClick={onBack} disabled={anyUploading}>
           Back
         </Button>
-        <Button type="button" onClick={handleNext}>
-          Continue
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          {anyUploading && (
+            <p className="text-xs text-muted-foreground">
+              Waiting for uploads to finish…
+            </p>
+          )}
+          <Button type="button" onClick={handleNext} disabled={anyUploading}>
+            Continue
+          </Button>
+        </div>
       </div>
     </div>
   );

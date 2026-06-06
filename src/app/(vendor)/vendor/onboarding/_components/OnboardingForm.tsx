@@ -34,9 +34,37 @@ interface Props {
 
 // ── State ──────────────────────────────────────────────────────────────────────
 
-type AllValues = Step1Values & Step2Values & Step3Values & Step4Values;
-
 const STEPS = ["Business", "Location", "Documents", "Bank details"];
+
+// ── Server-error routing helpers ───────────────────────────────────────────────
+
+const STEP_FIELDS: [number, string[]][] = [
+  [1, ["businessName", "bio", "yearsOfExperience", "primaryCategory"]],
+  [2, ["address", "whatsappNumber", "instagramHandle"]],
+  [3, ["cacNumber", "cacCertificate", "governmentId", "portfolioItems"]],
+  [4, ["bankName", "bankAccountNumber", "bankAccountName"]],
+];
+
+/** Returns the lowest step number that contains an error key, defaulting to 4. */
+function stepForFirstError(fieldErrors: Record<string, string[]>): number {
+  for (const [step, fields] of STEP_FIELDS) {
+    if (fields.some((f) => f in fieldErrors)) return step;
+  }
+  return 4;
+}
+
+/** Extracts single-message errors for a given set of field names. */
+function extractStepErrors(
+  fieldErrors: Record<string, string[]>,
+  fields: string[],
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const f of fields) {
+    const msg = fieldErrors[f]?.[0];
+    if (msg) out[f] = msg;
+  }
+  return out;
+}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -65,17 +93,28 @@ export function OnboardingForm({ prefill, adminNote }: Props) {
     portfolioItems: [],
   });
 
-  const [s4, setS4] = useState<Step4Values>({
+  const [s4] = useState<Step4Values>({
     bankName:          prefill?.bankName          ?? "",
     bankAccountNumber: prefill?.bankAccountNumber ?? "",
     bankAccountName:   prefill?.bankAccountName   ?? "",
   });
 
-  function handleSubmit() {
-    // governmentId is validated in Step 3; by the time we reach Step 4 it is non-null.
-    // Capture before entering the async transition to satisfy TypeScript narrowing.
+  // Per-step server error state — set on VALIDATION_ERROR, consumed by each step on mount.
+  const [s1ServerErrors, setS1ServerErrors] = useState<Record<string, string>>({});
+  const [s2ServerErrors, setS2ServerErrors] = useState<Record<string, string>>({});
+  const [s3ServerErrors, setS3ServerErrors] = useState<Record<string, string>>({});
+  const [s4ServerErrors, setS4ServerErrors] = useState<Record<string, string>>({});
+  // Incremented to force Step4 to re-mount when server errors target it.
+  const [s4ResetKey, setS4ResetKey] = useState(0);
+
+  function handleSubmit(step4Data: Step4Values) {
     const governmentId = s3.governmentId;
-    if (!governmentId) return;
+    if (!governmentId) {
+      toast.error("Your government ID upload didn't complete. Please re-upload it.");
+      setS3ServerErrors({ governmentId: "Your government ID upload didn't complete. Please re-upload it." });
+      setStep(3);
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -91,15 +130,23 @@ export function OnboardingForm({ prefill, adminNote }: Props) {
           cacCertificate:    s3.cacCertificate ?? undefined,
           governmentId,
           portfolioItems:    s3.portfolioItems,
-          bankName:          s4.bankName,
-          bankAccountNumber: s4.bankAccountNumber,
-          bankAccountName:   s4.bankAccountName,
+          bankName:          step4Data.bankName,
+          bankAccountNumber: step4Data.bankAccountNumber,
+          bankAccountName:   step4Data.bankAccountName,
         });
         // Reached only when the action returned an error (redirect was NOT called).
         if (result.code === "AUTH_REQUIRED") {
           toast.error("Session expired — please sign in again.");
         } else if (result.code === "VALIDATION_ERROR") {
-          toast.error("Some fields are invalid. Please go back and check your answers.");
+          const { fieldErrors } = result;
+          const targetStep = stepForFirstError(fieldErrors);
+          const stepErrors = extractStepErrors(fieldErrors, STEP_FIELDS[targetStep - 1][1]);
+          if (targetStep === 1) setS1ServerErrors(stepErrors);
+          else if (targetStep === 2) setS2ServerErrors(stepErrors);
+          else if (targetStep === 3) setS3ServerErrors(stepErrors);
+          else { setS4ServerErrors(stepErrors); setS4ResetKey((k) => k + 1); }
+          setStep(targetStep);
+          toast.error("Some fields are invalid. Please check the highlighted fields.");
         } else {
           toast.error(result.message ?? "Something went wrong. Please try again.");
         }
@@ -134,6 +181,7 @@ export function OnboardingForm({ prefill, adminNote }: Props) {
         {step === 1 && (
           <Step1BusinessBasics
             defaultValues={s1}
+            serverErrors={s1ServerErrors}
             onNext={(data) => {
               setS1(data);
               setStep(2);
@@ -143,6 +191,7 @@ export function OnboardingForm({ prefill, adminNote }: Props) {
         {step === 2 && (
           <Step2LocationContact
             defaultValues={s2}
+            serverErrors={s2ServerErrors}
             onBack={() => setStep(1)}
             onNext={(data) => {
               setS2(data);
@@ -153,6 +202,7 @@ export function OnboardingForm({ prefill, adminNote }: Props) {
         {step === 3 && (
           <Step3VerificationDocs
             defaultValues={s3}
+            serverErrors={s3ServerErrors}
             onBack={() => setStep(2)}
             onNext={(data) => {
               setS3(data);
@@ -162,7 +212,9 @@ export function OnboardingForm({ prefill, adminNote }: Props) {
         )}
         {step === 4 && (
           <Step4BankDetails
+            key={s4ResetKey}
             defaultValues={s4}
+            serverErrors={s4ServerErrors}
             onBack={() => setStep(3)}
             onSubmit={handleSubmit}
             isPending={isPending}

@@ -23,14 +23,15 @@ export interface Step1Values {
 
 interface Props {
   defaultValues: Step1Values;
+  serverErrors?: Partial<Record<string, string>>;
   onNext: (data: Step1Values) => void;
 }
 
 type Errors = Partial<Record<keyof Step1Values, string>>;
 
-export function Step1BusinessBasics({ defaultValues, onNext }: Props) {
+export function Step1BusinessBasics({ defaultValues, serverErrors, onNext }: Props) {
   const [v, setV] = useState<Step1Values>(defaultValues);
-  const [errors, setErrors] = useState<Errors>({});
+  const [errors, setErrors] = useState<Errors>((serverErrors ?? {}) as Errors);
 
   function set<K extends keyof Step1Values>(key: K, value: Step1Values[K]) {
     setV((prev) => ({ ...prev, [key]: value }));

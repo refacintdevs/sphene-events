@@ -22,15 +22,16 @@ export interface Step2Values {
 
 interface Props {
   defaultValues: Step2Values;
+  serverErrors?: Partial<Record<string, string>>;
   onBack: () => void;
   onNext: (data: Step2Values) => void;
 }
 
 type Errors = Partial<Record<keyof Step2Values, string>>;
 
-export function Step2LocationContact({ defaultValues, onBack, onNext }: Props) {
+export function Step2LocationContact({ defaultValues, serverErrors, onBack, onNext }: Props) {
   const [v, setV] = useState<Step2Values>(defaultValues);
-  const [errors, setErrors] = useState<Errors>({});
+  const [errors, setErrors] = useState<Errors>((serverErrors ?? {}) as Errors);
 
   function set<K extends keyof Step2Values>(key: K, value: Step2Values[K]) {
     setV((prev) => ({ ...prev, [key]: value }));
