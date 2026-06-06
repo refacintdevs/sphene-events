@@ -106,7 +106,7 @@ export function FooterSection() {
             <p>© {new Date().getFullYear()} EventIQ. All rights reserved.</p>
             <p className="text-xs text-muted-foreground/70">
               {/* RC number to be updated before public launch */}
-              RC — (registration pending) · Naira payments processed securely via Paystack
+              {/* RC — (registration pending) · Naira payments processed securely via Paystack */}
             </p>
           </div>
         </div>
