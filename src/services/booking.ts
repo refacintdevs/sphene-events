@@ -1,3 +1,4 @@
+import type { BookingStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { NotFoundError, BookingValidationError } from "@/lib/errors";
 
@@ -25,6 +26,18 @@ export interface BookingRequestInput {
   eventLocation: string;
   guestCount?: number;
   specialRequests?: string;
+}
+
+export interface VendorBookingItem {
+  bookingCode: string;
+  status: BookingStatus;
+  eventDate: Date;
+  eventLocation: string;
+  totalAmountKobo: number;
+  depositAmountKobo: number;
+  serviceName: string;
+  customerName: string;
+  createdAt: Date;
 }
 
 export interface BookingConfirmation {
@@ -98,6 +111,138 @@ export async function getBookingConfirmation(
     depositAmountKobo: booking.depositAmountKobo,
     balanceAmountKobo: booking.balanceAmountKobo,
   };
+}
+
+// ── Vendor-facing read functions ──────────────────────────────────────────────
+
+/** Minimal lookup: returns only the VendorProfile.id for the given User.id. */
+export async function getVendorProfileId(
+  userId: string,
+): Promise<{ id: string } | null> {
+  return db.vendorProfile.findUnique({
+    where: { userId },
+    select: { id: true },
+  });
+}
+
+/** All bookings owned by this vendor, newest first. */
+export async function getVendorBookings(
+  vendorProfileId: string,
+): Promise<VendorBookingItem[]> {
+  const rows = await db.booking.findMany({
+    where: { vendorId: vendorProfileId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      bookingCode:       true,
+      status:            true,
+      eventDate:         true,
+      eventLocation:     true,
+      totalAmountKobo:   true,
+      depositAmountKobo: true,
+      createdAt:         true,
+      service:  { select: { title: true } },
+      customer: { select: { fullName: true } },
+    },
+  });
+  return rows.map((r) => ({
+    bookingCode:       r.bookingCode,
+    status:            r.status,
+    eventDate:         r.eventDate,
+    eventLocation:     r.eventLocation,
+    totalAmountKobo:   r.totalAmountKobo,
+    depositAmountKobo: r.depositAmountKobo,
+    serviceName:       r.service.title,
+    customerName:      r.customer.fullName,
+    createdAt:         r.createdAt,
+  }));
+}
+
+// ── State-transition functions ─────────────────────────────────────────────────
+
+/**
+ * Transitions a PENDING_VENDOR booking to ACCEPTED.
+ *
+ * Steps:
+ *  1. Fetch booking for ownership check and email stub data.
+ *  2. Ownership: if not found or vendorId mismatch → NotFoundError.
+ *  3. Status guard (quick early exit): if not PENDING_VENDOR → BookingValidationError.
+ *  4. Atomic conditional update (WHERE includes all three conditions). If count === 0,
+ *     the booking was already acted on between steps 3 and 4 (double-click / two tabs)
+ *     → BookingValidationError. This makes the status guard race-safe.
+ *  5. Email stub — only reached on a successful update.
+ */
+export async function acceptBooking(
+  bookingCode: string,
+  vendorProfileId: string,
+): Promise<void> {
+  const booking = await db.booking.findUnique({
+    where: { bookingCode },
+    select: {
+      vendorId: true,
+      status:   true,
+      customer: { select: { email: true } },
+    },
+  });
+
+  if (!booking || booking.vendorId !== vendorProfileId) {
+    throw new NotFoundError("Booking not found");
+  }
+
+  if (booking.status !== "PENDING_VENDOR") {
+    throw new BookingValidationError("This booking can no longer be accepted");
+  }
+
+  const result = await db.booking.updateMany({
+    where: { bookingCode, vendorId: vendorProfileId, status: "PENDING_VENDOR" },
+    data:  { status: "ACCEPTED", vendorRespondedAt: new Date() },
+  });
+
+  if (result.count === 0) {
+    throw new BookingValidationError("This booking can no longer be accepted");
+  }
+
+  console.log(
+    `[EMAIL STUB] booking-accepted → customer (${booking.customer.email}), booking ${bookingCode} // TODO(Week 3): Resend`,
+  );
+}
+
+/**
+ * Transitions a PENDING_VENDOR booking to DECLINED.
+ * Same atomicity pattern as acceptBooking.
+ */
+export async function declineBooking(
+  bookingCode: string,
+  vendorProfileId: string,
+): Promise<void> {
+  const booking = await db.booking.findUnique({
+    where: { bookingCode },
+    select: {
+      vendorId: true,
+      status:   true,
+      customer: { select: { email: true } },
+    },
+  });
+
+  if (!booking || booking.vendorId !== vendorProfileId) {
+    throw new NotFoundError("Booking not found");
+  }
+
+  if (booking.status !== "PENDING_VENDOR") {
+    throw new BookingValidationError("This booking can no longer be declined");
+  }
+
+  const result = await db.booking.updateMany({
+    where: { bookingCode, vendorId: vendorProfileId, status: "PENDING_VENDOR" },
+    data:  { status: "DECLINED", vendorRespondedAt: new Date() },
+  });
+
+  if (result.count === 0) {
+    throw new BookingValidationError("This booking can no longer be declined");
+  }
+
+  console.log(
+    `[EMAIL STUB] booking-declined → customer (${booking.customer.email}), booking ${bookingCode} // TODO(Week 3): Resend`,
+  );
 }
 
 // ── Write functions ───────────────────────────────────────────────────────────
