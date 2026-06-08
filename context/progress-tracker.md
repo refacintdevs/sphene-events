@@ -93,6 +93,7 @@ project is and how it got there.
   `images.remotePatterns` for `res.cloudinary.com` and `placehold.co`.
   Manual upload tested in Cloudinary Media Library; verified working.
 - **Phase 1 Unit 2.2: Customer booking request flow.** `/book/[serviceId]` single-route flow with two internal steps (event details → review → confirm), gated to CUSTOMER role via `(customer)/layout.tsx` using `findCurrentUser()` (AD-010). Server Action sources `customerId` from server auth (never client); `createBookingRequest()` in `services/booking.ts` re-fetches the service, re-validates the date server-side, snapshots `priceKobo` into `totalAmountKobo`, computes deposit (30%) and balance so they sum exactly, writes a `Booking` at `PENDING_VENDOR` with `whatsappRevealed: false`. Booking code `SE-YYYY-NNNN`. Vendor notification stubbed (console, labeled TODO Week 3). No payment, no Paystack, no WhatsApp reveal — those are Unit 2.3. Verified end-to-end against a seeded vendor: booking row written with correct customerId, vendorId (VendorProfile), status, and deposit + balance = total.
+- **Phase 1 Unit 2.4: Vendor accept/decline (built before Unit 2.3).** `/vendor/bookings` lists this vendor's bookings (gated to VENDOR role via `(vendor)/layout.tsx`, `findCurrentUser()`); `PENDING_VENDOR` bookings show Accept/Decline. Transitions live in `services/booking.ts` (`acceptBooking`/`declineBooking`): ownership check (booking.vendorId === caller's VendorProfile.id → else NotFoundError), then an atomic conditional `updateMany` whose WHERE includes `status: "PENDING_VENDOR"` — a zero count means the booking was already actioned (double-click/stale tab) and throws, so a duplicate transition is refused at the DB level. Sets `vendorRespondedAt`; stubbed customer notification (console, labeled). Verified end-to-end: accept flipped the row to ACCEPTED with timestamp + one stub line; the atomic guard refused a second concurrent accept (no re-write, no duplicate stub). Known limitation logged as BUG-017 (refusal is not surfaced to the user; suspected auth-timing, not the guard). No schema change.
 - **Phase 0 Unit 5: Clerk authentication with lazy user sync.**
   `@clerk/nextjs@7.4.1` installed. `src/proxy.ts` — Next.js 16 proxy
   (replaces deprecated `middleware.ts`); `clerkMiddleware()` with
@@ -159,6 +160,8 @@ project is and how it got there.
 ## Next Up
 
 Phase 1 Week 2 (continuing):
+
+- **Roadmap reorder:** Unit 2.4 (vendor accept/decline) was built before Unit 2.3 (Paystack), because payment is only reachable from the ACCEPTED state and nothing produced ACCEPTED until 2.4 existed. Next is Unit 2.3 (Paystack sandbox), which now has a real ACCEPTED booking to pay against (SE-2026-0014).
 
 1. **Unit 2.2:** Booking flow (4-screen: date select → review → pay → confirmed) — feature-specs §6.
 2. **Unit 2.3:** Paystack sandbox integration + webhook handler at `/api/webhooks/paystack`.
