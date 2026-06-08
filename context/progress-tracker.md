@@ -92,6 +92,7 @@ project is and how it got there.
   three environments). `next.config.ts` updated with
   `images.remotePatterns` for `res.cloudinary.com` and `placehold.co`.
   Manual upload tested in Cloudinary Media Library; verified working.
+- **Phase 1 Unit 2.2: Customer booking request flow.** `/book/[serviceId]` single-route flow with two internal steps (event details → review → confirm), gated to CUSTOMER role via `(customer)/layout.tsx` using `findCurrentUser()` (AD-010). Server Action sources `customerId` from server auth (never client); `createBookingRequest()` in `services/booking.ts` re-fetches the service, re-validates the date server-side, snapshots `priceKobo` into `totalAmountKobo`, computes deposit (30%) and balance so they sum exactly, writes a `Booking` at `PENDING_VENDOR` with `whatsappRevealed: false`. Booking code `SE-YYYY-NNNN`. Vendor notification stubbed (console, labeled TODO Week 3). No payment, no Paystack, no WhatsApp reveal — those are Unit 2.3. Verified end-to-end against a seeded vendor: booking row written with correct customerId, vendorId (VendorProfile), status, and deposit + balance = total.
 - **Phase 0 Unit 5: Clerk authentication with lazy user sync.**
   `@clerk/nextjs@7.4.1` installed. `src/proxy.ts` — Next.js 16 proxy
   (replaces deprecated `middleware.ts`); `clerkMiddleware()` with
@@ -180,6 +181,7 @@ Phase 1 Week 2 (continuing):
 - Domain name and brand: "EventIQ" is the confirmed
   name (renamed from "Sphene Events" on 2026-05-28).
   Finalize domain before public launch preparation.
+- Vendor service creation (feature-specs §3, `/vendor/services`) is not yet built and is not scheduled in any current unit. Vendors onboarded through the Unit 2.1 flow have zero services, so they cannot be booked until service creation exists. Demo booking runs against seeded vendors (which have services). Decide where service creation slots into the roadmap before Week 4.
 
 ### Deferred / Loose Ends
 

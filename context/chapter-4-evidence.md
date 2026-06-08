@@ -48,7 +48,7 @@ bottom and pull from the listed artifacts.
 | Vendor browse | ⏳ | Phase 1 Unit 1.2 | `docs/screenshots/vendors-browse/` |
 | Vendor detail | ⏳ | Phase 1 Unit 1.3 | `docs/screenshots/vendor-detail/` |
 | Vendor onboarding | ⏳ | Phase 1 Unit 2.1 | `docs/screenshots/vendor-onboarding/` |
-| Booking | ⏳ | Phase 1 Unit 2.2 | `docs/screenshots/booking/` |
+| Booking | ✅ | Phase 1 Unit 2.2 | `docs/screenshots/booking/` |
 | Payment | ⏳ | Phase 1 Unit 2.3 | `docs/screenshots/payment/` |
 | Chatbot | ⏳ | Phase 1 Unit 3.1-3.2 | `docs/screenshots/chat/` |
 | Reviews | ⏳ | Phase 1 Unit 3.3 | `docs/screenshots/reviews/` |

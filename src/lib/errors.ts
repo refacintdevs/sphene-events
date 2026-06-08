@@ -11,3 +11,17 @@ export class DatabaseSyncError extends Error {
     this.name = "DatabaseSyncError";
   }
 }
+
+export class NotFoundError extends Error {
+  constructor(message = "Not found") {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
+export class BookingValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BookingValidationError";
+  }
+}
