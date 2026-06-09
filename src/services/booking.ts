@@ -40,6 +40,26 @@ export interface VendorBookingItem {
   createdAt: Date;
 }
 
+export interface CustomerBookingItem {
+  bookingCode: string;
+  status: BookingStatus;
+  eventDate: Date;
+  eventLocation: string;
+  totalAmountKobo: number;
+  depositAmountKobo: number;
+  serviceName: string;
+  vendorName: string;
+}
+
+export interface BookingForPayment {
+  bookingCode: string;
+  eventDate: Date;
+  eventLocation: string;
+  depositAmountKobo: number;
+  serviceName: string;
+  vendorName: string;
+}
+
 export interface BookingConfirmation {
   bookingCode: string;
   vendorName: string;
@@ -155,6 +175,80 @@ export async function getVendorBookings(
     customerName:      r.customer.fullName,
     createdAt:         r.createdAt,
   }));
+}
+
+// ── Customer-facing read functions ────────────────────────────────────────────
+
+/** All bookings owned by this customer, newest first. */
+export async function getCustomerBookings(
+  customerId: string,
+): Promise<CustomerBookingItem[]> {
+  const rows = await db.booking.findMany({
+    where: { customerId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      bookingCode:       true,
+      status:            true,
+      eventDate:         true,
+      eventLocation:     true,
+      totalAmountKobo:   true,
+      depositAmountKobo: true,
+      service: {
+        select: {
+          title: true,
+          vendor: { select: { businessName: true } },
+        },
+      },
+    },
+  });
+  return rows.map((r) => ({
+    bookingCode:       r.bookingCode,
+    status:            r.status,
+    eventDate:         r.eventDate,
+    eventLocation:     r.eventLocation,
+    totalAmountKobo:   r.totalAmountKobo,
+    depositAmountKobo: r.depositAmountKobo,
+    serviceName:       r.service.title,
+    vendorName:        r.service.vendor.businessName,
+  }));
+}
+
+/**
+ * Fetch booking data for the payment page.
+ * Returns null if the booking is not found, is not owned by this customer,
+ * or is not in ACCEPTED status. All three gates are required — see feature-specs §6.
+ */
+export async function getBookingForPayment(
+  bookingCode: string,
+  customerId: string,
+): Promise<BookingForPayment | null> {
+  const booking = await db.booking.findUnique({
+    where: { bookingCode },
+    select: {
+      customerId:        true,
+      status:            true,
+      eventDate:         true,
+      eventLocation:     true,
+      depositAmountKobo: true,
+      service: {
+        select: {
+          title: true,
+          vendor: { select: { businessName: true } },
+        },
+      },
+    },
+  });
+  if (!booking || booking.customerId !== customerId || booking.status !== "ACCEPTED") {
+    return null;
+  }
+  return {
+    bookingCode,
+    eventDate:         booking.eventDate,
+    eventLocation:     booking.eventLocation,
+    depositAmountKobo: booking.depositAmountKobo,
+    serviceName:       booking.service.title,
+    vendorName:        booking.service.vendor.businessName,
+  };
 }
 
 // ── State-transition functions ─────────────────────────────────────────────────
